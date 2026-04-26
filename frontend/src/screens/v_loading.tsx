@@ -26,7 +26,7 @@ export default function VLoading() {
     <View className="flex-1 bg-white items-center justify-center">
       <Animated.View style={{ opacity: fadeAnim }} className="items-center">
         <Image 
-          source={require('../../assets/images/logo.png')} 
+          source={require('../../assets/images/logo_2.png')} 
           className="w-64 h-64"
           resizeMode="contain"
         />
