@@ -2,9 +2,11 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { House, SquaresFour, Scan, Heart, User } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function CBottomNav({ active = 'home' }: { active?: string }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const tabs = [
     { key: 'home', icon: House, route: '/beranda' },
@@ -15,7 +17,10 @@ export default function CBottomNav({ active = 'home' }: { active?: string }) {
   ];
 
   return (
-    <View className="flex-row items-center justify-between px-6 py-4 bg-white border-t border-gray-100 pb-8">
+    <View 
+      className="flex-row items-center justify-between px-6 bg-white border-t border-gray-100"
+      style={{ paddingBottom: insets.bottom > 0 ? insets.bottom : 20, paddingTop: 16 }}
+    >
       {tabs.map((tab) => {
         const aktif = active === tab.key;
         return (

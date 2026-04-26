@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CHeader from '../components/c_header';
 import CBottomNav from '../components/c_bottom_nav';
 
