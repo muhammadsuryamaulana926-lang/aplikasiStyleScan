@@ -22,7 +22,6 @@ let pool;
 
 async function initDB() {
   try {
-    // Koneksi tanpa nama database terlebih dahulu untuk memastikan pembuatan db jika belum ada
     const connection = await mysql.createConnection({
       host: dbConfig.host,
       user: dbConfig.user,
@@ -32,7 +31,6 @@ async function initDB() {
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\``);
     await connection.end();
 
-    // Buat Pool Koneksi ke Database target
     pool = mysql.createPool(dbConfig);
     console.log(`Terhubung ke database MySQL: ${dbConfig.database}`);
 
@@ -44,7 +42,7 @@ async function initDB() {
         harga VARCHAR(50),
         diskon VARCHAR(50),
         merk VARCHAR(100),
-        gambar VARCHAR(255),
+        gambar VARCHAR(500),
         rating DECIMAL(3, 1)
       )
     `);
@@ -53,28 +51,31 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS tersimpan (
         id INT AUTO_INCREMENT PRIMARY KEY,
         id_produk INT,
-        waktu_simpan TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (id_produk) REFERENCES produk(id)
+        waktu_simpan TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS pengguna (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        nama VARCHAR(255) DEFAULT 'User',
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         kode_pos VARCHAR(50)
       )
     `);
 
-    // Injeksi data dummy untuk percobaan jika tabel kosong
+    // Injeksi data dummy jika tabel kosong
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM produk');
     if (rows[0].count === 0) {
       await pool.query(`
         INSERT INTO produk (nama, harga, diskon, merk, gambar, rating) VALUES
         ('Hoodie Bold Burger', '$900.00', '-20%', 'H&M', 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=500', 4.3),
         ('Statue Print Hoodie', '$90.00', '', 'Adidas', 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?auto=format&fit=crop&q=80&w=500', 4.8),
-        ('Casual Mandarin Collar Shirt', '$900.00', '-20%', 'H&M', 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=500', 4.3)
+        ('Casual Mandarin Collar Shirt', '$900.00', '-20%', 'H&M', 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=500', 4.3),
+        ('Classic Denim Jacket', '$120.00', '-15%', 'Zara', 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=500', 4.5),
+        ('Oversized Street Tee', '$45.00', '-10%', 'Puma', 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&q=80&w=500', 4.1),
+        ('Premium Polo Shirt', '$75.00', '', 'Lacoste', 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?auto=format&fit=crop&q=80&w=500', 4.7)
       `);
       console.log('Dummy data produk berhasil ditambahkan ke database.');
     }
@@ -83,10 +84,34 @@ async function initDB() {
   }
 }
 
-// Inisialisasi Database
 initDB();
 
-// Endpoints
+// ========== ENDPOINTS ==========
+
+// --- Produk ---
+app.get('/produk', async (req, res) => {
+  try {
+    const [produk_db] = await pool.query('SELECT * FROM produk');
+    res.json({ produk: produk_db });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/produk/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM produk WHERE id = ?', [req.params.id]);
+    if (rows.length > 0) {
+      res.json({ produk: rows[0] });
+    } else {
+      res.status(404).json({ pesan: 'Produk tidak ditemukan' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Analisis ---
 app.post('/unggah_outfit', upload.single('gambar'), (req, res) => {
   res.json({ 
     pesan: "Outfit berhasil diunggah", 
@@ -96,7 +121,6 @@ app.post('/unggah_outfit', upload.single('gambar'), (req, res) => {
 });
 
 app.post('/analisis_outfit', async (req, res) => {
-  const { url_gambar } = req.body;
   try {
     const [produk_db] = await pool.query('SELECT * FROM produk LIMIT 3');
     res.json({
@@ -111,32 +135,57 @@ app.post('/analisis_outfit', async (req, res) => {
   }
 });
 
-app.get('/produk', async (req, res) => {
-  try {
-    const [produk_db] = await pool.query('SELECT * FROM produk');
-    res.json({ produk: produk_db });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
+// --- Tersimpan / Keranjang ---
 app.post('/simpan_outfit', async (req, res) => {
-  const { produk } = req.body;
+  const { id_produk } = req.body;
   try {
-    await pool.query('INSERT INTO tersimpan (id_produk) VALUES (?)', [produk.id]);
+    // Cek apakah sudah tersimpan
+    const [existing] = await pool.query('SELECT * FROM tersimpan WHERE id_produk = ?', [id_produk]);
+    if (existing.length > 0) {
+      return res.json({ pesan: "Produk sudah ada di keranjang", sudah_ada: true });
+    }
+    await pool.query('INSERT INTO tersimpan (id_produk) VALUES (?)', [id_produk]);
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM tersimpan');
-    res.json({ pesan: "Outfit berhasil disimpan", total_tersimpan: rows[0].count });
+    res.json({ pesan: "Berhasil ditambahkan ke keranjang!", total_tersimpan: rows[0].count });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+app.get('/tersimpan', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT t.id, t.id_produk, t.waktu_simpan, p.nama, p.harga, p.diskon, p.merk, p.gambar, p.rating
+      FROM tersimpan t
+      JOIN produk p ON t.id_produk = p.id
+      ORDER BY t.waktu_simpan DESC
+    `);
+    res.json({ tersimpan: rows });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/tersimpan/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM tersimpan WHERE id = ?', [req.params.id]);
+    res.json({ pesan: "Berhasil dihapus dari keranjang" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Autentikasi ---
 app.post('/daftar', async (req, res) => {
   const { email, password, kode_pos } = req.body;
   try {
     await pool.query('INSERT INTO pengguna (email, password, kode_pos) VALUES (?, ?, ?)', [email, password, kode_pos]);
-    res.json({ pesan: "Pendaftaran berhasil" });
+    const [pengguna] = await pool.query('SELECT id, nama, email, kode_pos FROM pengguna WHERE email = ?', [email]);
+    res.json({ pesan: "Pendaftaran berhasil", pengguna: pengguna[0] });
   } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ error: "Email sudah terdaftar" });
+    }
     res.status(500).json({ error: error.message });
   }
 });
@@ -144,7 +193,7 @@ app.post('/daftar', async (req, res) => {
 app.post('/masuk', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const [pengguna] = await pool.query('SELECT * FROM pengguna WHERE email = ? AND password = ?', [email, password]);
+    const [pengguna] = await pool.query('SELECT id, nama, email, kode_pos FROM pengguna WHERE email = ? AND password = ?', [email, password]);
     if (pengguna.length > 0) {
       res.json({ pesan: "Masuk berhasil", pengguna: pengguna[0] });
     } else {

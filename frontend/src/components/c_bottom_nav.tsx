@@ -6,23 +6,28 @@ import { useRouter } from 'expo-router';
 export default function CBottomNav({ active = 'home' }: { active?: string }) {
   const router = useRouter();
 
+  const tabs = [
+    { key: 'home', icon: House, route: '/beranda' },
+    { key: 'kategori', icon: SquaresFour, route: '/beranda' },
+    { key: 'kamera', icon: Scan, route: '/kamera' },
+    { key: 'tersimpan', icon: Heart, route: '/tersimpan' },
+    { key: 'profil', icon: User, route: '/profil' },
+  ];
+
   return (
     <View className="flex-row items-center justify-between px-6 py-4 bg-white border-t border-gray-100 pb-8">
-      <TouchableOpacity onPress={() => router.push('/beranda')} className={`p-2 ${active === 'home' ? 'bg-[#0A4D68] rounded-full' : ''}`}>
-        <House size={24} color={active === 'home' ? '#FFFFFF' : '#8C8C8C'} weight={active === 'home' ? 'fill' : 'regular'} />
-      </TouchableOpacity>
-      <TouchableOpacity className="p-2">
-        <SquaresFour size={24} color="#8C8C8C" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/kamera')} className={`p-2 ${active === 'kamera' ? 'bg-[#0A4D68] rounded-full' : ''}`}>
-        <Scan size={24} color={active === 'kamera' ? '#FFFFFF' : '#8C8C8C'} weight={active === 'kamera' ? 'fill' : 'regular'} />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/tersimpan')} className={`p-2 ${active === 'tersimpan' ? 'bg-[#0A4D68] rounded-full' : ''}`}>
-        <Heart size={24} color={active === 'tersimpan' ? '#FFFFFF' : '#8C8C8C'} weight={active === 'tersimpan' ? 'fill' : 'regular'} />
-      </TouchableOpacity>
-      <TouchableOpacity className="p-2">
-        <User size={24} color="#8C8C8C" />
-      </TouchableOpacity>
+      {tabs.map((tab) => {
+        const aktif = active === tab.key;
+        return (
+          <TouchableOpacity
+            key={tab.key}
+            onPress={() => router.push(tab.route as any)}
+            className={`p-2 ${aktif ? 'bg-[#0A4D68] rounded-full' : ''}`}
+          >
+            <tab.icon size={24} color={aktif ? '#FFFFFF' : '#8C8C8C'} weight={aktif ? 'fill' : 'regular'} />
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }

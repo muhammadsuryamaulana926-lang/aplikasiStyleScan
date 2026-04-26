@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, ImageBackground, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ImageBackground, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { masuk_akun } from '../services/api';
 
 export default function VMasuk() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if(!email || !password) return Alert.alert("Error", "Mohon isi email dan kata sandi");
-    router.push('/beranda');
+    setLoading(true);
+    try {
+      const data = await masuk_akun(email, password);
+      Alert.alert("Berhasil", `Selamat datang kembali!`);
+      router.replace('/beranda');
+    } catch (error: any) {
+      Alert.alert("Gagal Masuk", error.message || "Email atau kata sandi salah");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,9 +63,13 @@ export default function VMasuk() {
             <Text className="text-xs text-black underline font-bold">Lupa Kata Sandi?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleLogin} className="w-full h-14 overflow-hidden items-center justify-center bg-black rounded-sm shadow-md active:opacity-80">
+          <TouchableOpacity onPress={handleLogin} disabled={loading} className="w-full h-14 overflow-hidden items-center justify-center bg-black rounded-sm shadow-md active:opacity-80">
             <ImageBackground source={{ uri: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=500" }} className="absolute w-full h-full opacity-40" />
-            <Text className="text-white font-bold text-base relative z-10">Masuk</Text>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text className="text-white font-bold text-base relative z-10">Masuk</Text>
+            )}
           </TouchableOpacity>
         </View>
 

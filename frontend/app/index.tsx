@@ -1,4 +1,4 @@
-import VMasuk from '../src/screens/v_masuk';
+import VLoading from '../src/screens/v_loading';
 export default function Index() {
-  return <VMasuk />;
+  return <VLoading />;
 }

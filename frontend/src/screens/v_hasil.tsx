@@ -1,19 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { CaretLeft, Heart, Star } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
-import { analisis_gambar } from '../services/api';
+import { analisis_gambar, simpan_outfit } from '../services/api';
 
 export default function VHasil() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
+  const [ukuran_aktif, setUkuranAktif] = useState(1);
+  const [warna_aktif, setWarnaAktif] = useState(1);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     analisis_gambar("dummy").then(res => setData(res)).catch(console.error);
   }, []);
 
   const p = data?.rekomendasi_produk?.[0] || {
-    merk: "H&M", rating: 4.3, nama: "Casual Mandarin Collar Shirt", harga: "$900.00", gambar: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=500"
+    id: 1, merk: "H&M", rating: 4.3, nama: "Casual Mandarin Collar Shirt",
+    harga: "$900.00",
+    gambar: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=500"
+  };
+
+  const ukuran_list = ['S', 'M', 'L', 'XL'];
+  const warna_list = ['#6B7280', '#0A4D68', '#991B1B'];
+
+  const tambah_keranjang = async () => {
+    try {
+      const res = await simpan_outfit(p.id);
+      if (res?.sudah_ada) {
+        Alert.alert("Info", "Produk sudah ada di keranjang");
+      } else {
+        Alert.alert("Berhasil! 🛒", `${p.nama} ditambahkan ke keranjang`);
+      }
+    } catch (e) {
+      Alert.alert("Error", "Gagal menambahkan ke keranjang");
+    }
   };
 
   return (
@@ -22,17 +43,14 @@ export default function VHasil() {
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100">
           <CaretLeft size={20} color="#1A1A1A" />
         </TouchableOpacity>
-        <TouchableOpacity className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100">
-          <Heart size={20} color="#1A1A1A" />
+        <TouchableOpacity onPress={() => setLiked(!liked)} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100">
+          <Heart size={20} color={liked ? "#FF4D6D" : "#1A1A1A"} weight={liked ? "fill" : "regular"} />
         </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="w-full h-[450px] bg-[#F5F5F5] items-center justify-center pt-10 pb-8">
-           <Image source={{ uri: p.gambar }} className="w-3/4 h-full" resizeMode="contain" />
-           <View className="absolute bottom-4 right-4 bg-white/80 px-3 py-1 rounded-full">
-             <Text className="text-black font-bold text-xs">1/8</Text>
-           </View>
+          <Image source={{ uri: p.gambar }} className="w-3/4 h-full" resizeMode="contain" />
         </View>
 
         <View className="p-6">
@@ -57,37 +75,41 @@ export default function VHasil() {
 
           <View className="flex-row items-center justify-between mb-6">
             <View className="flex-row items-center">
-               <Text className="text-sm font-bold text-black mr-4">Size</Text>
-               <View className="flex-row space-x-3">
-                 {['S', 'M', 'L', 'XL'].map((s, i) => (
-                   <Text key={i} className={`text-sm font-bold ${i === 1 ? 'text-[#0A4D68]' : 'text-gray-400'}`}>{s}</Text>
-                 ))}
-               </View>
+              <Text className="text-sm font-bold text-black mr-4">Size</Text>
+              <View className="flex-row space-x-3">
+                {ukuran_list.map((s, i) => (
+                  <TouchableOpacity key={i} onPress={() => setUkuranAktif(i)}>
+                    <Text className={`text-sm font-bold ${i === ukuran_aktif ? 'text-[#0A4D68]' : 'text-gray-400'}`}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
             <View className="flex-row items-center">
-               <Text className="text-sm font-bold text-black mr-3">Color</Text>
-               <View className="flex-row space-x-2">
-                 <View className="w-5 h-5 rounded-full bg-gray-500" />
-                 <View className="w-5 h-5 rounded-full bg-[#0A4D68] border-2 border-[#0A4D68] ring-2 ring-white" />
-                 <View className="w-5 h-5 rounded-full bg-red-800" />
-               </View>
+              <Text className="text-sm font-bold text-black mr-3">Color</Text>
+              <View className="flex-row space-x-2">
+                {warna_list.map((w, i) => (
+                  <TouchableOpacity key={i} onPress={() => setWarnaAktif(i)}>
+                    <View className={`w-5 h-5 rounded-full ${i === warna_aktif ? 'border-2 border-[#0A4D68]' : ''}`} style={{ backgroundColor: w }} />
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
 
           <View className="mb-8">
             <Text className="text-base font-bold text-black mb-2">Description</Text>
             <Text className="text-gray-500 text-sm leading-relaxed">
-              Tetap stylish dengan koleksi pakaian pria terbaru. Menampilkan desain yang bersih dan bahan yang dapat bernapas, sangat cocok untuk berbagai kegiatan... <Text className="font-bold text-black">Read More ∨</Text>
+              Tetap stylish dengan koleksi pakaian pria terbaru. Desain bersih dan bahan bernapas, cocok untuk berbagai kegiatan.
             </Text>
           </View>
         </View>
       </ScrollView>
 
       <View className="flex-row space-x-4 p-6 bg-white border-t border-gray-100">
-        <TouchableOpacity className="flex-1 py-4 rounded-full border border-gray-200 items-center">
+        <TouchableOpacity onPress={tambah_keranjang} className="flex-1 py-4 rounded-full border border-gray-200 items-center">
           <Text className="font-bold text-black">Add Cart</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="flex-1 bg-[#0A4D68] py-4 rounded-full items-center shadow-md">
+        <TouchableOpacity onPress={() => Alert.alert("Beli", "Fitur pembayaran segera hadir!")} className="flex-1 bg-[#0A4D68] py-4 rounded-full items-center shadow-md">
           <Text className="font-bold text-white">Buy Now</Text>
         </TouchableOpacity>
       </View>
