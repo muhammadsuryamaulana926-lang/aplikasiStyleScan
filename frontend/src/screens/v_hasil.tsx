@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CaretLeft, Heart, Star } from 'phosphor-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ambil_produk_by_id, simpan_outfit } from '../services/api';

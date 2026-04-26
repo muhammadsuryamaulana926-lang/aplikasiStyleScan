@@ -14,7 +14,7 @@ interface Props {
 
 export default function LUtama({ children, judul_header, show_header = true, show_footer = true, active_tab = 'home' }: Props) {
   return (
-    <SafeAreaView className="flex-1 bg-[#F9FAFB]">
+    <SafeAreaView className="flex-1 bg-[#F9FAFB]" edges={['top', 'left', 'right']}>
       {show_header && judul_header && <CHeader judul={judul_header} />}
       <View className="flex-1">
         {children}

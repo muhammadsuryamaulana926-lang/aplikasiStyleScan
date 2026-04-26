@@ -86,8 +86,8 @@ export default function VBeranda() {
         </View>
 
         <View className="flex-row flex-wrap justify-between pb-8">
-          {produk.map((p: any) => (
-            <CKartuProduk key={p.id} produk={p} on_press={() => router.push({ pathname: '/hasil', params: { id: p.id } })} />
+          {produk.map((p: any, i: number) => (
+            <CKartuProduk key={p?.id ? p.id.toString() : i.toString()} produk={p} on_press={() => router.push({ pathname: '/hasil', params: { id: p.id } })} />
           ))}
         </View>
       </ScrollView>

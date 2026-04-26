@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, FlatList, Dimensions } from 'react-native';
+import { View, Text, Image, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CaretLeft, Heart, HandTap } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { ambil_produk, simpan_outfit } from '../services/api';
@@ -70,7 +71,7 @@ export default function VKamera() {
       <FlatList
         ref={flatListRef}
         data={produk_list.length > 0 ? produk_list : [produk_sekarang]}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => item?.id ? item.id.toString() : index.toString()}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
