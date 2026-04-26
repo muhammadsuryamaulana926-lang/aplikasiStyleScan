@@ -3,6 +3,7 @@ import { View, Text, ImageBackground, TextInput, TouchableOpacity, ActivityIndic
 import { useRouter } from 'expo-router';
 import { masuk_akun } from '../services/api';
 import { useModal } from '../context/ModalContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function VMasuk() {
   const router = useRouter();
@@ -10,12 +11,14 @@ export default function VMasuk() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { showModal } = useModal();
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     if(!email || !password) return showModal({ title: "Perhatian", message: "Mohon isi email dan kata sandi", type: 'info' });
     setLoading(true);
     try {
       const data = await masuk_akun(email, password);
+      await login(data.pengguna);
       showModal({ title: "Berhasil", message: "Selamat datang kembali!", type: 'success', onConfirm: () => router.replace('/beranda') });
     } catch (error: any) {
       console.log("LOGIN_ERROR_FULL:", error);

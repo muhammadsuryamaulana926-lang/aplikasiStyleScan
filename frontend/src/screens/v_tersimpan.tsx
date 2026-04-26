@@ -44,6 +44,11 @@ export default function VTersimpan() {
         <View>
           <Text className="text-xs text-red-500 font-bold">{item.merk}</Text>
           <Text className="text-sm font-bold text-black" numberOfLines={1}>{item.nama}</Text>
+          {(item.ukuran || item.warna) && (
+            <Text className="text-[10px] text-gray-500 mt-0.5">
+              {item.ukuran ? `Size: ${item.ukuran}` : ''} {item.ukuran && item.warna ? '|' : ''} {item.warna ? `Color: ${item.warna}` : ''}
+            </Text>
+          )}
         </View>
         <View className="flex-row items-center justify-between">
           <Text className="text-base font-bold text-[#0A4D68]">{item.harga}</Text>

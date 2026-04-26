@@ -51,6 +51,8 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS tersimpan (
         id INT AUTO_INCREMENT PRIMARY KEY,
         id_produk INT,
+        ukuran VARCHAR(50),
+        warna VARCHAR(50),
         waktu_simpan TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -136,14 +138,14 @@ app.post('/analisis_outfit', async (req, res) => {
 
 // --- Tersimpan / Keranjang ---
 app.post('/simpan_outfit', async (req, res) => {
-  const { id_produk } = req.body;
+  const { id_produk, ukuran, warna } = req.body;
   try {
-    // Cek apakah sudah tersimpan
-    const [existing] = await pool.query('SELECT * FROM tersimpan WHERE id_produk = ?', [id_produk]);
+    // Cek apakah sudah tersimpan dengan ukuran dan warna yang sama
+    const [existing] = await pool.query('SELECT * FROM tersimpan WHERE id_produk = ? AND (ukuran = ? OR ukuran IS NULL) AND (warna = ? OR warna IS NULL)', [id_produk, ukuran, warna]);
     if (existing.length > 0) {
-      return res.json({ pesan: "Produk sudah ada di keranjang", sudah_ada: true });
+      return res.json({ pesan: "Produk sudah ada di keranjang dengan varian ini", sudah_ada: true });
     }
-    await pool.query('INSERT INTO tersimpan (id_produk) VALUES (?)', [id_produk]);
+    await pool.query('INSERT INTO tersimpan (id_produk, ukuran, warna) VALUES (?, ?, ?)', [id_produk, ukuran, warna]);
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM tersimpan');
     res.json({ pesan: "Berhasil ditambahkan ke keranjang!", total_tersimpan: rows[0].count });
   } catch (error) {
@@ -154,7 +156,7 @@ app.post('/simpan_outfit', async (req, res) => {
 app.get('/tersimpan', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT t.id, t.id_produk, t.waktu_simpan, p.nama, p.harga, p.diskon, p.merk, p.gambar, p.rating
+      SELECT t.id, t.id_produk, t.ukuran, t.warna, t.waktu_simpan, p.nama, p.harga, p.diskon, p.merk, p.gambar, p.rating
       FROM tersimpan t
       JOIN produk p ON t.id_produk = p.id
       ORDER BY t.waktu_simpan DESC

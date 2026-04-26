@@ -35,12 +35,12 @@ export const analisis_gambar = async (uri: string) => {
 };
 
 // === KERANJANG / TERSIMPAN ===
-export const simpan_outfit = async (id_produk: number) => {
+export const simpan_outfit = async (id_produk: number, ukuran?: string, warna?: string) => {
   try {
     const res = await fetch(`${BASE_URL}/simpan_outfit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_produk })
+      body: JSON.stringify({ id_produk, ukuran, warna })
     });
     return await res.json();
   } catch (error) {

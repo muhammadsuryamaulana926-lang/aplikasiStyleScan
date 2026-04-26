@@ -37,7 +37,9 @@ export default function VHasil() {
 
   const tambah_keranjang = async () => {
     try {
-      const res = await simpan_outfit(p.id);
+      const selectedUkuran = ukuran_list[ukuran_aktif];
+      const selectedWarna = warna_list[warna_aktif];
+      const res = await simpan_outfit(p.id, selectedUkuran, selectedWarna);
       if (res?.sudah_ada) {
         showModal({ title: "Info", message: "Produk sudah ada di keranjang", type: 'info' });
       } else {

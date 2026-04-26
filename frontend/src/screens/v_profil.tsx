@@ -4,10 +4,12 @@ import { SignOut, Gear, Bell, ShieldCheck, CaretRight } from 'phosphor-react-nat
 import { useRouter } from 'expo-router';
 import LUtama from '../layouts/l_utama';
 import { useModal } from '../context/ModalContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function VProfil() {
   const router = useRouter();
   const { showModal } = useModal();
+  const { user, logout } = useAuth();
 
   const menu_items = [
     { label: 'Pengaturan Akun', icon: Gear },
@@ -21,7 +23,10 @@ export default function VProfil() {
       message: "Apakah Anda yakin ingin keluar?",
       type: 'confirm',
       confirmText: "Keluar",
-      onConfirm: () => router.replace('/masuk')
+      onConfirm: async () => {
+        await logout();
+        router.replace('/masuk');
+      }
     });
   };
 
@@ -32,11 +37,11 @@ export default function VProfil() {
 
         <View className="bg-white rounded-2xl p-5 mb-6 border border-gray-100 shadow-sm flex-row items-center">
           <View className="w-16 h-16 rounded-full bg-[#0A4D68] items-center justify-center">
-            <Text className="text-white text-2xl font-bold">U</Text>
+            <Text className="text-white text-2xl font-bold">{user?.nama_pengguna?.charAt(0)?.toUpperCase() || 'U'}</Text>
           </View>
           <View className="ml-4 flex-1">
-            <Text className="text-base font-bold text-black">User StyleScan</Text>
-            <Text className="text-sm text-gray-400">user@stylescan.com</Text>
+            <Text className="text-base font-bold text-black">{user?.nama_pengguna || 'User StyleScan'}</Text>
+            <Text className="text-sm text-gray-400">{user?.email || 'user@stylescan.com'}</Text>
           </View>
         </View>
 
