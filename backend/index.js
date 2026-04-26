@@ -60,7 +60,7 @@ async function initDB() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         nama VARCHAR(255) DEFAULT 'User',
         email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
+        kata_sandi VARCHAR(255) NOT NULL,
         kode_pos VARCHAR(50)
       )
     `);
@@ -179,7 +179,7 @@ app.delete('/tersimpan/:id', async (req, res) => {
 app.post('/daftar', async (req, res) => {
   const { email, password, kode_pos } = req.body;
   try {
-    await pool.query('INSERT INTO pengguna (email, password, kode_pos) VALUES (?, ?, ?)', [email, password, kode_pos]);
+    await pool.query('INSERT INTO pengguna (email, kata_sandi, kode_pos) VALUES (?, ?, ?)', [email, password, kode_pos]);
     const [pengguna] = await pool.query('SELECT id, nama, email, kode_pos FROM pengguna WHERE email = ?', [email]);
     res.json({ pesan: "Pendaftaran berhasil", pengguna: pengguna[0] });
   } catch (error) {
@@ -193,7 +193,7 @@ app.post('/daftar', async (req, res) => {
 app.post('/masuk', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const [pengguna] = await pool.query('SELECT id, nama, email, kode_pos FROM pengguna WHERE email = ? AND password = ?', [email, password]);
+    const [pengguna] = await pool.query('SELECT id, nama, email, kode_pos FROM pengguna WHERE email = ? AND kata_sandi = ?', [email, password]);
     if (pengguna.length > 0) {
       res.json({ pesan: "Masuk berhasil", pengguna: pengguna[0] });
     } else {

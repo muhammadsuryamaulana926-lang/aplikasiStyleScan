@@ -37,7 +37,7 @@ export default function VDaftar() {
         <Text className="text-white text-xs tracking-widest uppercase font-medium">Buat Akun Baru</Text>
       </View>
 
-      <View className="bg-white w-full rounded-t-[50px] px-8 pt-10 pb-10 h-[75%] justify-between">
+      <View className="bg-white w-full rounded-t-[50px] px-8 pt-10 pb-16 h-[75%] justify-between">
         <View>
           <View className="mb-6">
             <Text className="text-xs font-bold text-black mb-1">E-mail</Text>

@@ -23,7 +23,7 @@ export default function VLupaSandi() {
         <Text className="text-white text-xs tracking-widest uppercase font-medium">Atur Ulang Sandi</Text>
       </View>
 
-      <View className="bg-white w-full rounded-t-[50px] px-8 pt-10 pb-10 h-[50%] justify-between">
+      <View className="bg-white w-full rounded-t-[50px] px-8 pt-10 pb-16 h-[50%] justify-between">
         <View>
           <Text className="text-sm text-gray-500 mb-6 leading-relaxed">
             Masukkan alamat e-mail yang terdaftar pada akun Anda. Kami akan mengirimkan instruksi untuk mengatur ulang kata sandi.
