@@ -76,12 +76,12 @@ export const masuk_akun = async (email: string, password: string) => {
   }
 };
 
-export const daftar_akun = async (email: string, password: string, kode_pos: string) => {
+export const daftar_akun = async (email: string, password: string) => {
   try {
     const res = await fetch(`${BASE_URL}/daftar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, kode_pos })
+      body: JSON.stringify({ email, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Gagal mendaftar');

@@ -7,16 +7,15 @@ export default function VDaftar() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [kodePos, setKodePos] = useState('');
   const [setuju, setSetuju] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if(!email || !password || !kodePos) return Alert.alert("Error", "Mohon isi semua bidang");
+    if(!email || !password) return Alert.alert("Error", "Mohon isi semua bidang");
     if(!setuju) return Alert.alert("Error", "Anda harus menyetujui Syarat & Ketentuan");
     setLoading(true);
     try {
-      await daftar_akun(email, password, kodePos);
+      await daftar_akun(email, password);
       Alert.alert("Berhasil", "Akun Anda berhasil dibuat! Silakan masuk.");
       router.replace('/masuk');
     } catch (error: any) {
@@ -60,17 +59,6 @@ export default function VDaftar() {
               className="border-b border-gray-300 py-2 text-base text-black"
               value={password}
               onChangeText={setPassword}
-            />
-          </View>
-          <View className="mb-8">
-            <Text className="text-xs font-bold text-black mb-1">Kode Pos</Text>
-            <TextInput 
-              placeholder="Ketik kode pos" 
-              placeholderTextColor="#A1A1AA" 
-              className="border-b border-gray-300 py-2 text-base text-black"
-              value={kodePos}
-              onChangeText={setKodePos}
-              keyboardType="number-pad"
             />
           </View>
 
