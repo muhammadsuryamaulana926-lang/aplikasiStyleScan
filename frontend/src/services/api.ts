@@ -68,10 +68,22 @@ export const masuk_akun = async (email: string, password: string) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.pesan || 'Gagal masuk');
+    
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      console.log("API_JSON_PARSE_ERROR:", e);
+      throw new Error("Gagal membaca respon dari server");
+    }
+
+    if (!res.ok) {
+      console.log("API_RESPONSE_NOT_OK:", res.status, data);
+      throw new Error(data.pesan || `Server error (${res.status})`);
+    }
     return data;
   } catch (error: any) {
+    console.log("API_FETCH_ERROR:", error.message);
     throw error;
   }
 };
@@ -83,10 +95,21 @@ export const daftar_akun = async (email: string, password: string) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Gagal mendaftar');
+    
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      throw new Error("Gagal membaca respon dari server");
+    }
+
+    if (!res.ok) {
+      console.log("API_REGISTER_NOT_OK:", res.status, data);
+      throw new Error(data.pesan || `Server error (${res.status})`);
+    }
     return data;
   } catch (error: any) {
+    console.log("API_REGISTER_FETCH_ERROR:", error.message);
     throw error;
   }
 };

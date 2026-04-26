@@ -180,26 +180,32 @@ app.post('/daftar', async (req, res) => {
   try {
     await pool.query('INSERT INTO pengguna (email, kata_sandi) VALUES (?, ?)', [email, password]);
     const [pengguna] = await pool.query('SELECT id, nama, email FROM pengguna WHERE email = ?', [email]);
+    console.log("PENDAFTARAN_BERHASIL:", email);
     res.json({ pesan: "Pendaftaran berhasil", pengguna: pengguna[0] });
   } catch (error) {
+    console.error("PENDAFTARAN_ERROR:", error.message);
     if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ error: "Email sudah terdaftar" });
+      return res.status(400).json({ pesan: "Email sudah terdaftar" });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ pesan: error.message });
   }
 });
 
 app.post('/masuk', async (req, res) => {
   const { email, password } = req.body;
+  console.log("PERCOBAAN_MASUK:", email);
   try {
     const [pengguna] = await pool.query('SELECT id, nama, email FROM pengguna WHERE email = ? AND kata_sandi = ?', [email, password]);
     if (pengguna.length > 0) {
+      console.log("MASUK_BERHASIL:", email);
       res.json({ pesan: "Masuk berhasil", pengguna: pengguna[0] });
     } else {
+      console.log("MASUK_GAGAL: Email/Sandi salah", email);
       res.status(401).json({ pesan: "Email atau kata sandi salah" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("MASUK_DB_ERROR:", error.message);
+    res.status(500).json({ pesan: error.message });
   }
 });
 

@@ -19,6 +19,7 @@ export default function VDaftar() {
       Alert.alert("Berhasil", "Akun Anda berhasil dibuat! Silakan masuk.");
       router.replace('/masuk');
     } catch (error: any) {
+      console.log("REGISTER_ERROR_FULL:", error);
       Alert.alert("Gagal Mendaftar", error.message || "Terjadi kesalahan");
     } finally {
       setLoading(false);

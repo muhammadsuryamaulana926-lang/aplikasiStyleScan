@@ -17,6 +17,7 @@ export default function VMasuk() {
       Alert.alert("Berhasil", `Selamat datang kembali!`);
       router.replace('/beranda');
     } catch (error: any) {
+      console.log("LOGIN_ERROR_FULL:", error);
       Alert.alert("Gagal Masuk", error.message || "Email atau kata sandi salah");
     } finally {
       setLoading(false);
