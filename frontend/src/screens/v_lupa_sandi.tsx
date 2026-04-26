@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, ImageBackground, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ImageBackground, TextInput, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useModal } from '../context/ModalContext';
 
 export default function VLupaSandi() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const { showModal } = useModal();
 
   const handleReset = () => {
-    if(!email) return Alert.alert("Error", "Mohon isi e-mail Anda");
-    Alert.alert("Terkirim", "Tautan atur ulang kata sandi telah dikirim ke e-mail Anda.");
-    router.push('/');
+    if(!email) return showModal({ title: "Perhatian", message: "Mohon isi e-mail Anda", type: 'info' });
+    showModal({ title: "Terkirim", message: "Tautan atur ulang kata sandi telah dikirim ke e-mail Anda.", type: 'success', onConfirm: () => router.push('/') });
   };
 
   return (

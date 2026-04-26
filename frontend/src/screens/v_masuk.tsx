@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, ImageBackground, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ImageBackground, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { masuk_akun } from '../services/api';
+import { useModal } from '../context/ModalContext';
 
 export default function VMasuk() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showModal } = useModal();
 
   const handleLogin = async () => {
-    if(!email || !password) return Alert.alert("Error", "Mohon isi email dan kata sandi");
+    if(!email || !password) return showModal({ title: "Perhatian", message: "Mohon isi email dan kata sandi", type: 'info' });
     setLoading(true);
     try {
       const data = await masuk_akun(email, password);
-      Alert.alert("Berhasil", `Selamat datang kembali!`);
-      router.replace('/beranda');
+      showModal({ title: "Berhasil", message: "Selamat datang kembali!", type: 'success', onConfirm: () => router.replace('/beranda') });
     } catch (error: any) {
       console.log("LOGIN_ERROR_FULL:", error);
-      Alert.alert("Gagal Masuk", error.message || "Email atau kata sandi salah");
+      showModal({ title: "Gagal Masuk", message: error.message || "Email atau kata sandi salah", type: 'error' });
     } finally {
       setLoading(false);
     }

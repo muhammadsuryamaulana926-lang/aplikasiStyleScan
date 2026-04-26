@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { SignOut, Gear, Bell, ShieldCheck, CaretRight } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import LUtama from '../layouts/l_utama';
+import { useModal } from '../context/ModalContext';
 
 export default function VProfil() {
   const router = useRouter();
+  const { showModal } = useModal();
 
   const menu_items = [
     { label: 'Pengaturan Akun', icon: Gear },
@@ -14,10 +16,13 @@ export default function VProfil() {
   ];
 
   const keluar = () => {
-    Alert.alert("Keluar", "Apakah Anda yakin ingin keluar?", [
-      { text: "Batal" },
-      { text: "Keluar", style: "destructive", onPress: () => router.replace('/masuk') }
-    ]);
+    showModal({
+      title: "Keluar",
+      message: "Apakah Anda yakin ingin keluar?",
+      type: 'confirm',
+      confirmText: "Keluar",
+      onConfirm: () => router.replace('/masuk')
+    });
   };
 
   return (

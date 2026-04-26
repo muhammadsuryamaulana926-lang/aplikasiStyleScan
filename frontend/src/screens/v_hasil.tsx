@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { CaretLeft, Heart, Star } from 'phosphor-react-native';
-import { useRouter } from 'expo-router';
-import { analisis_gambar, simpan_outfit } from '../services/api';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { ambil_produk_by_id, simpan_outfit } from '../services/api';
+import { useModal } from '../context/ModalContext';
 
 export default function VHasil() {
   const router = useRouter();
@@ -10,16 +11,26 @@ export default function VHasil() {
   const [ukuran_aktif, setUkuranAktif] = useState(1);
   const [warna_aktif, setWarnaAktif] = useState(1);
   const [liked, setLiked] = useState(false);
+  const { showModal } = useModal();
+
+  const { id } = useLocalSearchParams();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    analisis_gambar("dummy").then(res => setData(res)).catch(console.error);
-  }, []);
+    if (id) {
+      ambil_produk_by_id(id as string).then(res => {
+        if (res?.produk) setData(res.produk);
+        setLoading(false);
+      }).catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+    } else {
+      setLoading(false);
+    }
+  }, [id]);
 
-  const p = data?.rekomendasi_produk?.[0] || {
-    id: 1, merk: "H&M", rating: 4.3, nama: "Casual Mandarin Collar Shirt",
-    harga: "$900.00",
-    gambar: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=500"
-  };
+  const p = data || null;
 
   const ukuran_list = ['S', 'M', 'L', 'XL'];
   const warna_list = ['#6B7280', '#0A4D68', '#991B1B'];
@@ -28,17 +39,23 @@ export default function VHasil() {
     try {
       const res = await simpan_outfit(p.id);
       if (res?.sudah_ada) {
-        Alert.alert("Info", "Produk sudah ada di keranjang");
+        showModal({ title: "Info", message: "Produk sudah ada di keranjang", type: 'info' });
       } else {
-        Alert.alert("Berhasil! 🛒", `${p.nama} ditambahkan ke keranjang`);
+        showModal({ title: "Berhasil! 🛒", message: `${p.nama} ditambahkan ke keranjang`, type: 'success' });
       }
     } catch (e) {
-      Alert.alert("Error", "Gagal menambahkan ke keranjang");
+      showModal({ title: "Error", message: "Gagal menambahkan ke keranjang", type: 'error' });
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      {loading || !p ? (
+        <View className="flex-1 items-center justify-center">
+          <Text>Memuat data produk...</Text>
+        </View>
+      ) : (
+        <>
       <View className="flex-row items-center justify-between px-6 py-4 absolute top-0 left-0 right-0 z-10 mt-8">
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100">
           <CaretLeft size={20} color="#1A1A1A" />
@@ -109,10 +126,12 @@ export default function VHasil() {
         <TouchableOpacity onPress={tambah_keranjang} className="flex-1 py-4 rounded-full border border-gray-200 items-center">
           <Text className="font-bold text-black">Add Cart</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => Alert.alert("Beli", "Fitur pembayaran segera hadir!")} className="flex-1 bg-[#0A4D68] py-4 rounded-full items-center shadow-md">
+        <TouchableOpacity onPress={() => showModal({ title: "Segera Hadir", message: "Fitur pembayaran akan segera hadir!", type: 'info' })} className="flex-1 bg-[#0A4D68] py-4 rounded-full items-center shadow-md">
           <Text className="font-bold text-white">Buy Now</Text>
         </TouchableOpacity>
       </View>
+      </>
+      )}
     </SafeAreaView>
   );
 }

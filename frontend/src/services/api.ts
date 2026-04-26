@@ -11,6 +11,15 @@ export const ambil_produk = async () => {
   }
 };
 
+export const ambil_produk_by_id = async (id: number | string) => {
+  try {
+    const res = await fetch(`${BASE_URL}/produk/${id}`);
+    return await res.json();
+  } catch (error) {
+    console.error("Error ambil produk by id:", error);
+    return null;
+  }
+};
 export const analisis_gambar = async (uri: string) => {
   try {
     const res = await fetch(`${BASE_URL}/analisis_outfit`, {

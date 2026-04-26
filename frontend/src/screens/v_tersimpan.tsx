@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { Trash, ShoppingBag } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import LUtama from '../layouts/l_utama';
 import { ambil_tersimpan, hapus_tersimpan } from '../services/api';
+import { useModal } from '../context/ModalContext';
 
 export default function VTersimpan() {
   const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showModal } = useModal();
 
   const muat_data = async () => {
     setLoading(true);
@@ -23,17 +25,20 @@ export default function VTersimpan() {
   useFocusEffect(useCallback(() => { muat_data(); }, []));
 
   const hapus_item = async (id: number) => {
-    Alert.alert("Hapus", "Hapus produk dari keranjang?", [
-      { text: "Batal" },
-      { text: "Hapus", style: "destructive", onPress: async () => {
+    showModal({
+      title: "Hapus",
+      message: "Hapus produk dari keranjang?",
+      type: 'confirm',
+      confirmText: "Hapus",
+      onConfirm: async () => {
         await hapus_tersimpan(id);
         muat_data();
-      }}
-    ]);
+      }
+    });
   };
 
   const renderItem = ({ item }: any) => (
-    <View className="flex-row bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm">
+    <TouchableOpacity onPress={() => router.push({ pathname: '/hasil', params: { id: item.id } })} className="flex-row bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm active:opacity-70">
       <Image source={{ uri: item.gambar }} className="w-20 h-20 rounded-xl bg-gray-100" resizeMode="cover" />
       <View className="flex-1 ml-4 justify-between">
         <View>
@@ -42,12 +47,12 @@ export default function VTersimpan() {
         </View>
         <View className="flex-row items-center justify-between">
           <Text className="text-base font-bold text-[#0A4D68]">{item.harga}</Text>
-          <TouchableOpacity onPress={() => hapus_item(item.id)} className="p-2">
+          <TouchableOpacity onPress={() => hapus_item(item.id)} className="p-2 z-10">
             <Trash size={18} color="#EF4444" />
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

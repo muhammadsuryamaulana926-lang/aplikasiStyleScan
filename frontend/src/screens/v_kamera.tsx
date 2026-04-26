@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Image, TouchableOpacity, SafeAreaView, FlatList, Dimensions } from 'react-native';
 import { CaretLeft, Heart, HandTap } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { ambil_produk, simpan_outfit } from '../services/api';
+import { useModal } from '../context/ModalContext';
 
 export default function VKamera() {
   const router = useRouter();
   const [produk_list, setProdukList] = useState<any[]>([]);
   const [index_aktif, setIndexAktif] = useState(0);
   const [liked, setLiked] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+  const screenWidth = Dimensions.get('window').width;
+  const { showModal } = useModal();
 
   useEffect(() => {
     ambil_produk().then(res => {
@@ -25,15 +29,15 @@ export default function VKamera() {
 
   const geser_kanan = () => {
     if (produk_list.length > 0) {
-      setIndexAktif((prev) => (prev + 1) % produk_list.length);
-      setLiked(false);
+      const nextIndex = (index_aktif + 1) % produk_list.length;
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     }
   };
 
   const geser_kiri = () => {
     if (produk_list.length > 0) {
-      setIndexAktif((prev) => (prev - 1 + produk_list.length) % produk_list.length);
-      setLiked(false);
+      const prevIndex = (index_aktif - 1 + produk_list.length) % produk_list.length;
+      flatListRef.current?.scrollToIndex({ index: prevIndex, animated: true });
     }
   };
 
@@ -41,12 +45,12 @@ export default function VKamera() {
     try {
       const res = await simpan_outfit(produk_sekarang.id);
       if (res?.sudah_ada) {
-        Alert.alert("Info", "Produk sudah ada di keranjang Anda");
+        showModal({ title: "Info", message: "Produk sudah ada di keranjang Anda", type: 'info' });
       } else {
-        Alert.alert("Berhasil! 🛒", `${produk_sekarang.nama} ditambahkan ke keranjang`);
+        showModal({ title: "Berhasil! 🛒", message: `${produk_sekarang.nama} ditambahkan ke keranjang`, type: 'success' });
       }
     } catch (error) {
-      Alert.alert("Error", "Gagal menambahkan ke keranjang");
+      showModal({ title: "Error", message: "Gagal menambahkan ke keranjang", type: 'error' });
     }
   };
 
@@ -63,13 +67,26 @@ export default function VKamera() {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <TouchableOpacity activeOpacity={1} onPress={geser_kanan} className="absolute inset-0">
-        <Image
-          source={{ uri: produk_sekarang.gambar }}
-          className="w-full h-full"
-          resizeMode="cover"
-        />
-      </TouchableOpacity>
+      <FlatList
+        ref={flatListRef}
+        data={produk_list.length > 0 ? produk_list : [produk_sekarang]}
+        keyExtractor={(item) => item.id.toString()}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(e) => {
+          const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+          setIndexAktif(index);
+          setLiked(false);
+        }}
+        renderItem={({ item }) => (
+          <View style={{ width: screenWidth, height: Dimensions.get('window').height }}>
+            <Image source={{ uri: item.gambar }} className="w-full h-full" resizeMode="cover" />
+          </View>
+        )}
+        className="absolute inset-0 z-0"
+        getItemLayout={(data, index) => ({ length: screenWidth, offset: screenWidth * index, index })}
+      />
 
       <View className="flex-row items-center justify-between px-6 py-4 mt-6">
         <TouchableOpacity onPress={() => router.back()} className="p-2 bg-white/20 rounded-full">
@@ -127,7 +144,7 @@ export default function VKamera() {
         </View>
 
         <View className="flex-row space-x-4">
-          <TouchableOpacity onPress={() => router.push('/hasil')} className="flex-1 bg-white/20 py-4 rounded-full items-center">
+          <TouchableOpacity onPress={() => router.push({ pathname: '/hasil', params: { id: produk_sekarang.id } })} className="flex-1 bg-white/20 py-4 rounded-full items-center">
             <Text className="text-white font-bold">Lihat Detail</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={tambah_keranjang} className="flex-1 bg-[#0A4D68] py-4 rounded-full items-center">

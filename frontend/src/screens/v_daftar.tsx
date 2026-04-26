@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, ImageBackground, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ImageBackground, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { daftar_akun } from '../services/api';
+import { useModal } from '../context/ModalContext';
 
 export default function VDaftar() {
   const router = useRouter();
@@ -9,18 +10,18 @@ export default function VDaftar() {
   const [password, setPassword] = useState('');
   const [setuju, setSetuju] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { showModal } = useModal();
 
   const handleRegister = async () => {
-    if(!email || !password) return Alert.alert("Error", "Mohon isi semua bidang");
-    if(!setuju) return Alert.alert("Error", "Anda harus menyetujui Syarat & Ketentuan");
+    if(!email || !password) return showModal({ title: "Perhatian", message: "Mohon isi semua bidang", type: 'info' });
+    if(!setuju) return showModal({ title: "Perhatian", message: "Anda harus menyetujui Syarat & Ketentuan", type: 'info' });
     setLoading(true);
     try {
       await daftar_akun(email, password);
-      Alert.alert("Berhasil", "Akun Anda berhasil dibuat! Silakan masuk.");
-      router.replace('/masuk');
+      showModal({ title: "Berhasil", message: "Akun Anda berhasil dibuat! Silakan masuk.", type: 'success', onConfirm: () => router.replace('/masuk') });
     } catch (error: any) {
       console.log("REGISTER_ERROR_FULL:", error);
-      Alert.alert("Gagal Mendaftar", error.message || "Terjadi kesalahan");
+      showModal({ title: "Gagal Mendaftar", message: error.message || "Terjadi kesalahan", type: 'error' });
     } finally {
       setLoading(false);
     }
