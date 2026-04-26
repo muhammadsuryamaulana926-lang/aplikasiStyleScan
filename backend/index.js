@@ -57,8 +57,8 @@ async function initDB() {
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS pengguna (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        nama VARCHAR(255) DEFAULT 'User',
+        id_pengguna INT AUTO_INCREMENT PRIMARY KEY,
+        nama_pengguna VARCHAR(255) DEFAULT 'User',
         email VARCHAR(255) UNIQUE NOT NULL,
         kata_sandi VARCHAR(255) NOT NULL
       )
@@ -179,7 +179,7 @@ app.post('/daftar', async (req, res) => {
   const { email, password } = req.body;
   try {
     await pool.query('INSERT INTO pengguna (email, kata_sandi) VALUES (?, ?)', [email, password]);
-    const [pengguna] = await pool.query('SELECT id, nama, email FROM pengguna WHERE email = ?', [email]);
+    const [pengguna] = await pool.query('SELECT id_pengguna, nama_pengguna, email FROM pengguna WHERE email = ?', [email]);
     console.log("PENDAFTARAN_BERHASIL:", email);
     res.json({ pesan: "Pendaftaran berhasil", pengguna: pengguna[0] });
   } catch (error) {
@@ -195,7 +195,7 @@ app.post('/masuk', async (req, res) => {
   const { email, password } = req.body;
   console.log("PERCOBAAN_MASUK:", email);
   try {
-    const [pengguna] = await pool.query('SELECT id, nama, email FROM pengguna WHERE email = ? AND kata_sandi = ?', [email, password]);
+    const [pengguna] = await pool.query('SELECT id_pengguna, nama_pengguna, email FROM pengguna WHERE email = ? AND kata_sandi = ?', [email, password]);
     if (pengguna.length > 0) {
       console.log("MASUK_BERHASIL:", email);
       res.json({ pesan: "Masuk berhasil", pengguna: pengguna[0] });
