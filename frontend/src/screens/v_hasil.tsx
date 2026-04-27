@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CaretLeft, Heart, Star } from 'phosphor-react-native';
+import { CaretLeft, Heart, Star, X } from 'phosphor-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ambil_produk_by_id, simpan_outfit, toggle_favorit } from '../services/api';
 import { useModal } from '../context/ModalContext';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 export default function VHasil() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [ukuran_aktif, setUkuranAktif] = useState(1);
-  const [warna_aktif, setWarnaAktif] = useState(1);
+  const [warna_aktif, setWarnaAktif] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [modal_varian, setModalVarian] = useState(false);
   const { showModal } = useModal();
   const { user } = useAuth();
+  const { refreshCart } = useCart();
 
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
@@ -37,28 +40,39 @@ export default function VHasil() {
 
   const handle_favorit = async () => {
     if (!user) return showModal({ title: "Perhatian", message: "Silakan masuk terlebih dahulu", type: 'info', onConfirm: () => router.push('/masuk') });
-    setLiked(!liked); // optimistic update
+    setLiked(!liked);
     try {
-      const res = await toggle_favorit(user.id_pengguna, p.id);
-      if (!res) setLiked(liked);
+      await toggle_favorit(user.id_pengguna, p.id);
     } catch (e) {
       setLiked(liked);
     }
   };
 
   const ukuran_list = ['S', 'M', 'L', 'XL'];
-  const warna_list = ['#6B7280', '#0A4D68', '#991B1B'];
+  
+  // Dummy thumbnails untuk varian warna (menggunakan Unsplash)
+  const varian_warna = [
+    { id: 0, label: 'Dark Grey', img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200" },
+    { id: 1, label: 'Navy Blue', img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=200" },
+    { id: 2, label: 'Maroon', img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=200" },
+    { id: 3, label: 'Forest', img: "https://images.unsplash.com/photo-1523398002811-999aa8e9f5b9?auto=format&fit=crop&q=80&w=200" },
+  ];
 
   const tambah_keranjang = async () => {
     if (!user) return showModal({ title: "Perhatian", message: "Silakan masuk terlebih dahulu", type: 'info', onConfirm: () => router.push('/masuk') });
+    
     try {
       const selectedUkuran = ukuran_list[ukuran_aktif];
-      const selectedWarna = warna_list[warna_aktif];
+      const selectedWarna = varian_warna[warna_aktif].label;
+      
       const res = await simpan_outfit(user.id_pengguna, p.id, selectedUkuran, selectedWarna);
+      setModalVarian(false);
+      
       if (res?.sudah_ada) {
         showModal({ title: "Info", message: "Produk sudah ada di keranjang", type: 'info' });
       } else {
         showModal({ title: "Berhasil! 🛒", message: `${p.nama} ditambahkan ke keranjang`, type: 'success' });
+        refreshCart();
       }
     } catch (e) {
       showModal({ title: "Error", message: "Gagal menambahkan ke keranjang", type: 'error' });
@@ -84,7 +98,7 @@ export default function VHasil() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="w-full h-[450px] bg-[#F5F5F5] items-center justify-center pt-10 pb-8">
-          <Image source={{ uri: p.gambar }} className="w-3/4 h-full" resizeMode="contain" />
+          <Image source={{ uri: varian_warna[warna_aktif].img || p.gambar }} className="w-3/4 h-full" resizeMode="contain" />
         </View>
 
         <View className="p-6">
@@ -92,7 +106,7 @@ export default function VHasil() {
             <Text className="text-sm font-bold text-red-500">{p.merk}</Text>
             <View className="flex-row items-center">
               <Star size={16} color="#F59E0B" weight="fill" />
-              <Text className="text-sm font-bold text-black ml-1">{p.rating}</Text>
+              <Text className="text-sm font-bold text-black ml-1">{p.rating || '4.5'}</Text>
             </View>
           </View>
 
@@ -107,29 +121,6 @@ export default function VHasil() {
             <Text className="text-xs font-bold text-gray-400 mb-1">10k+ Sold</Text>
           </View>
 
-          <View className="flex-row items-center justify-between mb-6">
-            <View className="flex-row items-center">
-              <Text className="text-sm font-bold text-black mr-4">Size</Text>
-              <View className="flex-row space-x-3">
-                {ukuran_list.map((s, i) => (
-                  <TouchableOpacity key={i} onPress={() => setUkuranAktif(i)}>
-                    <Text className={`text-sm font-bold ${i === ukuran_aktif ? 'text-[#0A4D68]' : 'text-gray-400'}`}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-            <View className="flex-row items-center">
-              <Text className="text-sm font-bold text-black mr-3">Color</Text>
-              <View className="flex-row space-x-2">
-                {warna_list.map((w, i) => (
-                  <TouchableOpacity key={i} onPress={() => setWarnaAktif(i)}>
-                    <View className={`w-5 h-5 rounded-full ${i === warna_aktif ? 'border-2 border-[#0A4D68]' : ''}`} style={{ backgroundColor: w }} />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-
           <View className="mb-8">
             <Text className="text-base font-bold text-black mb-2">Description</Text>
             <Text className="text-gray-500 text-sm leading-relaxed">
@@ -140,13 +131,76 @@ export default function VHasil() {
       </ScrollView>
 
       <View className="flex-row space-x-4 p-6 bg-white border-t border-gray-100">
-        <TouchableOpacity onPress={tambah_keranjang} className="flex-1 py-4 rounded-full border border-gray-200 items-center">
+        <TouchableOpacity onPress={() => setModalVarian(true)} className="flex-1 py-4 rounded-full border border-gray-200 items-center">
           <Text className="font-bold text-black">Add Cart</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => showModal({ title: "Segera Hadir", message: "Fitur pembayaran akan segera hadir!", type: 'info' })} className="flex-1 bg-[#0A4D68] py-4 rounded-full items-center shadow-md">
           <Text className="font-bold text-white">Buy Now</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modal Pilih Varian (Bottom Sheet) */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modal_varian}
+        onRequestClose={() => setModalVarian(false)}
+      >
+        <Pressable 
+          className="flex-1 bg-black/50 justify-end"
+          onPress={() => setModalVarian(false)}
+        >
+          <Pressable className="bg-white rounded-t-[40px] p-8 pt-6">
+            <View className="items-center mb-6">
+              <View className="w-12 h-1.5 bg-gray-200 rounded-full mb-6" />
+              <View className="flex-row justify-between w-full items-center">
+                <Text className="text-xl font-bold text-black">Pilih Varian</Text>
+                <TouchableOpacity onPress={() => setModalVarian(false)}>
+                  <X size={24} color="#1A1A1A" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View className="mb-8">
+              <Text className="text-base font-bold text-black mb-4">Size</Text>
+              <View className="flex-row">
+                {ukuran_list.map((s, i) => (
+                  <TouchableOpacity 
+                    key={i} 
+                    onPress={() => setUkuranAktif(i)}
+                    className={`w-14 h-14 rounded-2xl items-center justify-center border mr-4 ${i === ukuran_aktif ? 'border-[#0A4D68] bg-[#0A4D68]/5' : 'border-gray-200'}`}
+                  >
+                    <Text className={`text-base font-bold ${i === ukuran_aktif ? 'text-[#0A4D68]' : 'text-gray-400'}`}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View className="mb-10">
+              <Text className="text-base font-bold text-black mb-4">Color</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                {varian_warna.map((v, i) => (
+                  <TouchableOpacity 
+                    key={i} 
+                    onPress={() => setWarnaAktif(i)}
+                    className={`mr-4 p-1 rounded-2xl border-2 ${i === warna_aktif ? 'border-[#0A4D68]' : 'border-transparent'}`}
+                  >
+                    <Image source={{ uri: v.img }} className="w-16 h-16 rounded-xl bg-gray-100" resizeMode="cover" />
+                    <Text className={`text-[10px] text-center mt-1 font-medium ${i === warna_aktif ? 'text-[#0A4D68]' : 'text-gray-400'}`}>{v.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            <TouchableOpacity 
+              onPress={tambah_keranjang}
+              className="w-full bg-[#0A4D68] py-5 rounded-full items-center shadow-lg"
+            >
+              <Text className="text-white font-bold text-lg">Konfirmasi</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
       </>
       )}
     </SafeAreaView>

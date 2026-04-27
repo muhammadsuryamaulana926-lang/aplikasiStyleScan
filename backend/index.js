@@ -58,6 +58,12 @@ async function initDB() {
       )
     `);
 
+    // Tambahkan kolom jika belum ada (antisipasi tabel lama)
+    try {
+      await pool.query('ALTER TABLE tersimpan ADD COLUMN IF NOT EXISTS ukuran VARCHAR(50)');
+      await pool.query('ALTER TABLE tersimpan ADD COLUMN IF NOT EXISTS warna VARCHAR(50)');
+    } catch (e) { /* Abaikan jika database tidak dukung IF NOT EXISTS pada ALTER */ }
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS favorit (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -72,9 +78,14 @@ async function initDB() {
         id_pengguna INT AUTO_INCREMENT PRIMARY KEY,
         nama_pengguna VARCHAR(255) DEFAULT 'User',
         email VARCHAR(255) UNIQUE NOT NULL,
-        kata_sandi VARCHAR(255) NOT NULL
+        kata_sandi VARCHAR(255) NOT NULL,
+        foto VARCHAR(500)
       )
     `);
+
+    try {
+      await pool.query('ALTER TABLE pengguna ADD COLUMN foto VARCHAR(500)');
+    } catch (e) { /* sudah ada */ }
 
     // Injeksi data dummy jika tabel kosong
     const [rows] = await pool.query('SELECT COUNT(*) as count FROM produk');
@@ -98,6 +109,21 @@ async function initDB() {
 initDB();
 
 // ========== ENDPOINTS ==========
+
+app.put('/pengguna/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nama_pengguna, email, foto } = req.body;
+  try {
+    await pool.query(
+      'UPDATE pengguna SET nama_pengguna = ?, email = ?, foto = ? WHERE id_pengguna = ?',
+      [nama_pengguna, email, foto, id]
+    );
+    const [rows] = await pool.query('SELECT id_pengguna, nama_pengguna, email, foto FROM pengguna WHERE id_pengguna = ?', [id]);
+    res.json({ pesan: "Profil berhasil diperbarui", user: rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // --- Produk ---
 app.get('/produk', async (req, res) => {
@@ -226,8 +252,8 @@ app.get('/favorit/:id_pengguna', async (req, res) => {
 app.post('/daftar', async (req, res) => {
   const { email, password } = req.body;
   try {
-    await pool.query('INSERT INTO pengguna (email, kata_sandi) VALUES (?, ?)', [email, password]);
-    const [pengguna] = await pool.query('SELECT id_pengguna, nama_pengguna, email FROM pengguna WHERE email = ?', [email]);
+    const [result] = await pool.query('INSERT INTO pengguna (email, kata_sandi) VALUES (?, ?)', [email, password]);
+    const [pengguna] = await pool.query('SELECT id_pengguna, nama_pengguna, email, foto FROM pengguna WHERE id_pengguna = ?', [result.insertId]);
     console.log("PENDAFTARAN_BERHASIL:", email);
     res.json({ pesan: "Pendaftaran berhasil", pengguna: pengguna[0] });
   } catch (error) {
@@ -243,7 +269,7 @@ app.post('/masuk', async (req, res) => {
   const { email, password } = req.body;
   console.log("PERCOBAAN_MASUK:", email);
   try {
-    const [pengguna] = await pool.query('SELECT id_pengguna, nama_pengguna, email FROM pengguna WHERE email = ? AND kata_sandi = ?', [email, password]);
+    const [pengguna] = await pool.query('SELECT id_pengguna, nama_pengguna, email, foto FROM pengguna WHERE email = ? AND kata_sandi = ?', [email, password]);
     if (pengguna.length > 0) {
       console.log("MASUK_BERHASIL:", email);
       res.json({ pesan: "Masuk berhasil", pengguna: pengguna[0] });

@@ -6,11 +6,13 @@ import { MagnifyingGlass, ShoppingBag, MapPin } from 'phosphor-react-native';
 import { ambil_produk } from '../services/api';
 import { useRouter } from 'expo-router';
 import { useModal } from '../context/ModalContext';
+import { useCart } from '../context/CartContext';
 
 export default function VBeranda() {
   const [produk, set_produk] = useState([]);
   const router = useRouter();
   const { showModal } = useModal();
+  const { cartCount } = useCart();
 
   const mockFeature = () => showModal({ title: "Segera Hadir", message: "Fitur ini masih dalam tahap pengembangan.", type: 'info' });
 
@@ -24,17 +26,19 @@ export default function VBeranda() {
         {/* Header Wearify */}
         <View className="flex-row items-center justify-between mb-6">
           <View className="flex-row items-center">
-            <View className="w-8 h-8 bg-[#0A4D68] rounded-md mr-2 transform rotate-45 items-center justify-center">
-              <View className="w-4 h-4 bg-white transform -rotate-45" />
-            </View>
-            <Text className="text-xl font-bold text-black">StyleScan</Text>
+            <Text className="text-xl font-bold text-[#0A4D68]">StyleScan</Text>
           </View>
           <View className="flex-row space-x-3">
             <TouchableOpacity onPress={mockFeature} className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
               <MagnifyingGlass size={20} color="#1A1A1A" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/keranjang')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
+            <TouchableOpacity onPress={() => router.push('/keranjang')} className="p-2 bg-white rounded-full shadow-sm relative">
               <ShoppingBag size={20} color="#1A1A1A" />
+              {cartCount > 0 && (
+                <View className="absolute top-0 right-0 bg-red-500 rounded-full w-4 h-4 items-center justify-center">
+                  <Text className="text-white text-[8px] font-bold">{cartCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>

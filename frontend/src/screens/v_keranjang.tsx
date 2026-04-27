@@ -7,6 +7,7 @@ import LUtama from '../layouts/l_utama';
 import { ambil_tersimpan, hapus_tersimpan } from '../services/api';
 import { useModal } from '../context/ModalContext';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 export default function VKeranjang() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function VKeranjang() {
   const [loading, setLoading] = useState(true);
   const { showModal } = useModal();
   const { user } = useAuth();
+  const { refreshCart } = useCart();
 
   const muat_data = async () => {
     if (!user) return;
@@ -35,6 +37,7 @@ export default function VKeranjang() {
       confirmText: "Hapus",
       onConfirm: async () => {
         await hapus_tersimpan(id);
+        refreshCart();
         muat_data();
       }
     });

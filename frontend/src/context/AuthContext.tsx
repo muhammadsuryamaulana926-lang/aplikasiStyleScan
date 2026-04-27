@@ -5,6 +5,7 @@ interface User {
   id_pengguna: number;
   nama_pengguna: string;
   email: string;
+  foto?: string;
 }
 
 interface AuthContextType {

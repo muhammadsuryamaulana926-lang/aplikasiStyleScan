@@ -7,6 +7,8 @@ import { ambil_produk, simpan_outfit, toggle_favorit } from '../services/api';
 import { useModal } from '../context/ModalContext';
 
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import CView3D from '../components/c_view_3d';
 
 export default function VRekomendasi() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function VRekomendasi() {
   const flatListRef = useRef<FlatList>(null);
   const screenWidth = Dimensions.get('window').width;
   const { showModal } = useModal();
+  const { refreshCart } = useCart();
 
   useEffect(() => {
     ambil_produk().then(res => {
@@ -57,6 +60,7 @@ export default function VRekomendasi() {
         showModal({ title: "Info", message: "Produk sudah ada di keranjang Anda", type: 'info' });
       } else {
         showModal({ title: "Berhasil! 🛒", message: `${produk_sekarang.nama} ditambahkan ke keranjang`, type: 'success' });
+        refreshCart();
       }
     } catch (error) {
       showModal({ title: "Error", message: "Gagal menambahkan ke keranjang", type: 'error' });
@@ -74,16 +78,16 @@ export default function VRekomendasi() {
     }
   };
 
-  // Ambil 3 gambar untuk carousel bawah
-  const gambar_carousel = produk_list.length >= 3
-    ? [
-        produk_list[(index_aktif - 1 + produk_list.length) % produk_list.length],
-        produk_list[index_aktif],
-        produk_list[(index_aktif + 1) % produk_list.length],
-      ]
-    : produk_list.length > 0
-    ? [produk_list[0], produk_list[index_aktif], produk_list[Math.min(1, produk_list.length - 1)]]
-    : [];
+  const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=500";
+
+  // Ambil 3 gambar untuk carousel bawah (Gaya melengkung)
+  let gambar_carousel: any[] = [];
+  if (produk_list.length > 0) {
+    const prev = produk_list[(index_aktif - 1 + produk_list.length) % produk_list.length];
+    const curr = produk_list[index_aktif];
+    const next = produk_list[(index_aktif + 1) % produk_list.length];
+    gambar_carousel = [prev, curr, next];
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -99,9 +103,17 @@ export default function VRekomendasi() {
           setIndexAktif(index);
           setLiked(false);
         }}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <View style={{ width: screenWidth, height: Dimensions.get('window').height }}>
-            <Image source={{ uri: item.gambar }} className="w-full h-full" resizeMode="cover" />
+            {index === index_aktif ? (
+              <CView3D />
+            ) : (
+              <Image 
+                source={{ uri: item.gambar || PLACEHOLDER_IMAGE }} 
+                className="w-full h-full" 
+                resizeMode="cover" 
+              />
+            )}
           </View>
         )}
         className="absolute inset-0 z-0"
@@ -117,14 +129,7 @@ export default function VRekomendasi() {
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 justify-center items-center">
-        <View className="items-center bg-black/40 px-4 py-2 rounded-full flex-row">
-          <View className="mr-2">
-            <HandTap size={20} color="#FFFFFF" weight="fill" />
-          </View>
-          <Text className="text-white text-sm font-medium">Ketuk untuk ganti pakaian</Text>
-        </View>
-      </View>
+      <View className="flex-1" />
 
       <View className="pb-8 px-6">
         <View className="h-24 justify-center items-center mb-6 relative">
@@ -138,9 +143,12 @@ export default function VRekomendasi() {
                   if (i === 0) geser_kiri();
                   else if (i === 2) geser_kanan();
                 }}
-                className={`${i === 1 ? 'w-16 h-16 border-2 border-white' : 'w-12 h-12'} rounded-full bg-white/20 overflow-hidden`}
+                className={`${i === 1 ? 'w-16 h-16 border-2 border-white' : 'w-12 h-12'} rounded-full bg-white/20 overflow-hidden shadow-lg`}
               >
-                <Image source={{ uri: item?.gambar }} className="w-full h-full" />
+                <Image 
+                  source={{ uri: item?.gambar || PLACEHOLDER_IMAGE }} 
+                  className="w-full h-full" 
+                />
               </TouchableOpacity>
             ))}
           </View>

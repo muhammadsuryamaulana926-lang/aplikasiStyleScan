@@ -147,3 +147,17 @@ export const daftar_akun = async (email: string, password: string) => {
     throw error;
   }
 };
+
+export const update_profil = async (id: number, data: { nama_pengguna: string, email: string, foto?: string }) => {
+  try {
+    const res = await fetch(`${BASE_URL}/pengguna/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch (error) {
+    console.error("Error update profil:", error);
+    return null;
+  }
+};
