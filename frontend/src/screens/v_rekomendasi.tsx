@@ -34,6 +34,8 @@ export default function VRekomendasi() {
   const geser_kanan = () => {
     if (produk_list.length > 0) {
       const nextIndex = (index_aktif + 1) % produk_list.length;
+      setIndexAktif(nextIndex);
+      setLiked(false);
       flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     }
   };
@@ -41,6 +43,8 @@ export default function VRekomendasi() {
   const geser_kiri = () => {
     if (produk_list.length > 0) {
       const prevIndex = (index_aktif - 1 + produk_list.length) % produk_list.length;
+      setIndexAktif(prevIndex);
+      setLiked(false);
       flatListRef.current?.scrollToIndex({ index: prevIndex, animated: true });
     }
   };
