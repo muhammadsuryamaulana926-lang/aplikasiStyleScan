@@ -3,14 +3,16 @@ import { View, TouchableOpacity } from 'react-native';
 import { House, SquaresFour, Scan, Heart, User } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useModal } from '../context/ModalContext';
 
 export default function CBottomNav({ active = 'home' }: { active?: string }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { showModal } = useModal();
 
   const tabs = [
     { key: 'home', icon: House, route: '/beranda' },
-    { key: 'kategori', icon: SquaresFour, route: '/beranda' },
+    { key: 'kategori', icon: SquaresFour, route: '/kategori' },
     { key: 'kamera', icon: Scan, route: '/kamera' },
     { key: 'favorit', icon: Heart, route: '/favorit' },
     { key: 'profil', icon: User, route: '/profil' },

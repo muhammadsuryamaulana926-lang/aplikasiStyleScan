@@ -15,6 +15,7 @@ export default function RootLayout() {
           <Stack.Screen name="beranda" />
           <Stack.Screen name="kamera" />
           <Stack.Screen name="rekomendasi" />
+          <Stack.Screen name="kategori" />
           <Stack.Screen name="hasil" />
           <Stack.Screen name="keranjang" />
           <Stack.Screen name="favorit" />

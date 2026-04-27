@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { CaretLeft, Trash } from 'phosphor-react-native';
+import { Trash } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import LUtama from '../layouts/l_utama';
@@ -21,12 +21,15 @@ export default function VFavorit() {
     try {
       const res = await ambil_favorit(user.id_pengguna);
       setItems(res.favorit || []);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+    } catch (e) { 
+      console.error(e); 
+    } finally {
+      setLoading(false);
+    }
   };
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       muat_data();
     }, [user])
   );
@@ -64,7 +67,11 @@ export default function VFavorit() {
         ) : (
           <View className="pb-10">
             {items.map((item: any) => (
-              <View key={item.id} className="flex-row bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-sm">
+              <TouchableOpacity 
+                key={item.id} 
+                onPress={() => router.push({ pathname: '/hasil', params: { id: item.id_produk } })}
+                className="flex-row bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-sm active:opacity-70"
+              >
                 <View className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100">
                   <Image source={{ uri: item.gambar }} className="w-full h-full" resizeMode="cover" />
                 </View>
@@ -80,7 +87,7 @@ export default function VFavorit() {
                   </View>
                   <Text className="font-bold text-black text-base mt-2">{item.harga}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
