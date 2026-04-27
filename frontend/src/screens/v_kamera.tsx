@@ -1,158 +1,83 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { CaretLeft, Heart, HandTap } from 'phosphor-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import { ambil_produk, simpan_outfit } from '../services/api';
+import { X } from 'phosphor-react-native';
 import { useModal } from '../context/ModalContext';
+import LUtama from '../layouts/l_utama';
 
 export default function VKamera() {
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanning, setScanning] = useState(false);
+  const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
-  const [produk_list, setProdukList] = useState<any[]>([]);
-  const [index_aktif, setIndexAktif] = useState(0);
-  const [liked, setLiked] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
-  const screenWidth = Dimensions.get('window').width;
   const { showModal } = useModal();
 
-  useEffect(() => {
-    ambil_produk().then(res => {
-      if (res.produk && res.produk.length > 0) {
-        setProdukList(res.produk);
+  if (!permission) {
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    return (
+      <LUtama judul_header="Kamera Pintar" active_tab="kamera">
+        <View className="flex-1 items-center justify-center p-5">
+          <Text className="text-center mb-5 text-gray-700 text-base">Kami membutuhkan izin kamera Anda untuk melakukan scan outfit cerdas.</Text>
+          <TouchableOpacity onPress={requestPermission} className="bg-[#0A4D68] px-6 py-3 rounded-full">
+            <Text className="text-white font-bold text-base">Izinkan Akses Kamera</Text>
+          </TouchableOpacity>
+        </View>
+      </LUtama>
+    );
+  }
+
+  const takePicture = async () => {
+    if (cameraRef.current && !scanning) {
+      setScanning(true);
+      try {
+        const photo = await cameraRef.current.takePictureAsync();
+        
+        // Simulasi pengiriman ke AI / Backend
+        setTimeout(() => {
+          setScanning(false);
+          router.push('/rekomendasi');
+        }, 2000);
+
+      } catch (e) {
+        setScanning(false);
+        showModal({ title: "Gagal", message: "Tidak dapat memproses gambar.", type: 'error' });
       }
-    }).catch(console.error);
-  }, []);
-
-  const produk_sekarang = produk_list[index_aktif] || {
-    id: 1, nama: "Light Hoodie Bold Burger", harga: "$900.00", diskon: "-20%",
-    gambar: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=800"
-  };
-
-  const geser_kanan = () => {
-    if (produk_list.length > 0) {
-      const nextIndex = (index_aktif + 1) % produk_list.length;
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
     }
   };
-
-  const geser_kiri = () => {
-    if (produk_list.length > 0) {
-      const prevIndex = (index_aktif - 1 + produk_list.length) % produk_list.length;
-      flatListRef.current?.scrollToIndex({ index: prevIndex, animated: true });
-    }
-  };
-
-  const tambah_keranjang = async () => {
-    try {
-      const res = await simpan_outfit(produk_sekarang.id);
-      if (res?.sudah_ada) {
-        showModal({ title: "Info", message: "Produk sudah ada di keranjang Anda", type: 'info' });
-      } else {
-        showModal({ title: "Berhasil! 🛒", message: `${produk_sekarang.nama} ditambahkan ke keranjang`, type: 'success' });
-      }
-    } catch (error) {
-      showModal({ title: "Error", message: "Gagal menambahkan ke keranjang", type: 'error' });
-    }
-  };
-
-  // Ambil 3 gambar untuk carousel bawah
-  const gambar_carousel = produk_list.length >= 3
-    ? [
-        produk_list[(index_aktif - 1 + produk_list.length) % produk_list.length],
-        produk_list[index_aktif],
-        produk_list[(index_aktif + 1) % produk_list.length],
-      ]
-    : produk_list.length > 0
-    ? [produk_list[0], produk_list[index_aktif], produk_list[Math.min(1, produk_list.length - 1)]]
-    : [];
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <FlatList
-        ref={flatListRef}
-        data={produk_list.length > 0 ? produk_list : [produk_sekarang]}
-        keyExtractor={(item, index) => item?.id ? item.id.toString() : index.toString()}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(e) => {
-          const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-          setIndexAktif(index);
-          setLiked(false);
-        }}
-        renderItem={({ item }) => (
-          <View style={{ width: screenWidth, height: Dimensions.get('window').height }}>
-            <Image source={{ uri: item.gambar }} className="w-full h-full" resizeMode="cover" />
+    <View className="flex-1 bg-black">
+      <CameraView style={StyleSheet.absoluteFill} facing="back" ref={cameraRef}>
+        <View className="flex-1 justify-between p-6">
+          <View className="flex-row justify-end mt-12">
+             <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-black/50 items-center justify-center active:opacity-70">
+               <X size={24} color="#FFF" />
+             </TouchableOpacity>
           </View>
-        )}
-        className="absolute inset-0 z-0"
-        getItemLayout={(data, index) => ({ length: screenWidth, offset: screenWidth * index, index })}
-      />
-
-      <View className="flex-row items-center justify-between px-6 py-4 mt-6">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 bg-white/20 rounded-full">
-          <CaretLeft size={20} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setLiked(!liked)} className="p-2 bg-white/20 rounded-full">
-          <Heart size={20} color={liked ? "#FF4D6D" : "#FFFFFF"} weight={liked ? "fill" : "regular"} />
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-1 justify-center items-center">
-        <View className="items-center bg-black/40 px-4 py-2 rounded-full flex-row">
-          <View className="mr-2">
-            <HandTap size={20} color="#FFFFFF" weight="fill" />
-          </View>
-          <Text className="text-white text-sm font-medium">Ketuk untuk ganti pakaian</Text>
-        </View>
-      </View>
-
-      <View className="pb-8 px-6">
-        <View className="h-24 justify-center items-center mb-6 relative">
-          <View className="absolute w-[120%] h-40 border-t border-white/30 rounded-t-[100%] top-12" />
-
-          <View className="flex-row items-end justify-center space-x-4">
-            {gambar_carousel.map((item, i) => (
-              <TouchableOpacity
-                key={i}
-                onPress={() => {
-                  if (i === 0) geser_kiri();
-                  else if (i === 2) geser_kanan();
-                }}
-                className={`${i === 1 ? 'w-16 h-16 border-2 border-white' : 'w-12 h-12'} rounded-full bg-white/20 overflow-hidden`}
-              >
-                <Image source={{ uri: item?.gambar }} className="w-full h-full" />
-              </TouchableOpacity>
-            ))}
+          
+          <View className="items-center mb-16">
+             <View className="bg-black/50 px-4 py-2 rounded-full mb-8">
+               <Text className="text-white font-medium text-sm">Posisikan pakaian di tengah frame</Text>
+             </View>
+             
+             <TouchableOpacity 
+               onPress={takePicture} 
+               disabled={scanning}
+               className="w-20 h-20 rounded-full border-4 border-white items-center justify-center active:opacity-70"
+             >
+                {scanning ? (
+                  <ActivityIndicator size="large" color="#FFFFFF" />
+                ) : (
+                  <View className="w-16 h-16 rounded-full bg-white" />
+                )}
+             </TouchableOpacity>
           </View>
         </View>
-
-        <View className="flex-row justify-between items-end mb-6">
-          <View>
-            <Text className="text-white text-xl font-bold mb-1">{produk_sekarang.nama}</Text>
-            <View className="flex-row space-x-2">
-              <Text className="text-white/60 text-xs line-through">$1,200.00</Text>
-            </View>
-          </View>
-          <View className="items-end">
-            <Text className="text-white text-xl font-bold">{produk_sekarang.harga}</Text>
-            {produk_sekarang.diskon ? (
-              <View className="bg-red-500 px-2 py-0.5 rounded-full mt-1">
-                <Text className="text-white text-[10px] font-bold">{produk_sekarang.diskon}</Text>
-              </View>
-            ) : null}
-          </View>
-        </View>
-
-        <View className="flex-row space-x-4">
-          <TouchableOpacity onPress={() => router.push({ pathname: '/hasil', params: { id: produk_sekarang.id } })} className="flex-1 bg-white/20 py-4 rounded-full items-center">
-            <Text className="text-white font-bold">Lihat Detail</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={tambah_keranjang} className="flex-1 bg-[#0A4D68] py-4 rounded-full items-center">
-            <Text className="text-white font-bold">Masuk Keranjang</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
+      </CameraView>
+    </View>
   );
 }

@@ -10,7 +10,7 @@ export default function VLupaSandi() {
 
   const handleReset = () => {
     if(!email) return showModal({ title: "Perhatian", message: "Mohon isi e-mail Anda", type: 'info' });
-    showModal({ title: "Terkirim", message: "Tautan atur ulang kata sandi telah dikirim ke e-mail Anda.", type: 'success', onConfirm: () => router.push('/') });
+    showModal({ title: "Terkirim", message: "Tautan atur ulang kata sandi telah dikirim ke e-mail Anda.", type: 'success', onConfirm: () => router.back() });
   };
 
   return (
@@ -49,7 +49,7 @@ export default function VLupaSandi() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={() => router.push('/')} className="items-center mt-auto">
+        <TouchableOpacity onPress={() => router.back()} className="items-center mt-auto">
           <Text className="text-xs text-black underline font-bold">Kembali ke halaman Masuk</Text>
         </TouchableOpacity>
       </View>

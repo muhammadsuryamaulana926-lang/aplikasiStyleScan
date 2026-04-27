@@ -35,12 +35,12 @@ export const analisis_gambar = async (uri: string) => {
 };
 
 // === KERANJANG / TERSIMPAN ===
-export const simpan_outfit = async (id_produk: number, ukuran?: string, warna?: string) => {
+export const simpan_outfit = async (id_pengguna: number, id_produk: number, ukuran?: string, warna?: string) => {
   try {
     const res = await fetch(`${BASE_URL}/simpan_outfit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_produk, ukuran, warna })
+      body: JSON.stringify({ id_pengguna, id_produk, ukuran, warna })
     });
     return await res.json();
   } catch (error) {
@@ -49,9 +49,9 @@ export const simpan_outfit = async (id_produk: number, ukuran?: string, warna?: 
   }
 };
 
-export const ambil_tersimpan = async () => {
+export const ambil_tersimpan = async (id_pengguna: number) => {
   try {
-    const res = await fetch(`${BASE_URL}/tersimpan`);
+    const res = await fetch(`${BASE_URL}/tersimpan/${id_pengguna}`);
     return await res.json();
   } catch (error) {
     console.error("Error ambil tersimpan:", error);

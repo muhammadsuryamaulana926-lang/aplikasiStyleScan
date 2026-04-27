@@ -5,10 +5,14 @@ import CKartuProduk from '../components/c_kartu_produk';
 import { MagnifyingGlass, ShoppingBag, MapPin } from 'phosphor-react-native';
 import { ambil_produk } from '../services/api';
 import { useRouter } from 'expo-router';
+import { useModal } from '../context/ModalContext';
 
 export default function VBeranda() {
   const [produk, set_produk] = useState([]);
   const router = useRouter();
+  const { showModal } = useModal();
+
+  const mockFeature = () => showModal({ title: "Segera Hadir", message: "Fitur ini masih dalam tahap pengembangan.", type: 'info' });
 
   useEffect(() => {
     ambil_produk().then(res => set_produk(res.produk || [])).catch(console.error);
@@ -26,10 +30,10 @@ export default function VBeranda() {
             <Text className="text-xl font-bold text-black">Wearify</Text>
           </View>
           <View className="flex-row space-x-3">
-            <TouchableOpacity className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
+            <TouchableOpacity onPress={mockFeature} className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
               <MagnifyingGlass size={20} color="#1A1A1A" />
             </TouchableOpacity>
-            <TouchableOpacity className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
+            <TouchableOpacity onPress={() => router.push('/tersimpan')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
               <ShoppingBag size={20} color="#1A1A1A" />
             </TouchableOpacity>
           </View>
@@ -45,7 +49,7 @@ export default function VBeranda() {
                 <Text className="text-sm font-bold text-black">Malang, Indonesia</Text>
               </View>
             </View>
-            <TouchableOpacity className="bg-[#0A4D68] px-4 py-2 rounded-full">
+            <TouchableOpacity onPress={mockFeature} className="bg-[#0A4D68] px-4 py-2 rounded-full">
               <Text className="text-white font-bold text-xs">Change</Text>
             </TouchableOpacity>
           </View>
@@ -54,7 +58,7 @@ export default function VBeranda() {
              <View className="z-10 w-2/3">
                 <Text className="text-white text-base font-bold mb-1">Don't miss out —</Text>
                 <Text className="text-blue-100 text-xs mb-3">Save up to 50% on your favorite products.</Text>
-                <TouchableOpacity className="bg-white px-3 py-1.5 rounded-full self-start">
+                <TouchableOpacity onPress={mockFeature} className="bg-white px-3 py-1.5 rounded-full self-start">
                   <Text className="text-[#0A4D68] font-bold text-[10px]">Shop Now</Text>
                 </TouchableOpacity>
              </View>
@@ -67,9 +71,9 @@ export default function VBeranda() {
           <Text className="text-sm font-bold text-black mb-3">Popular Brand</Text>
           <View className="flex-row justify-between">
             {['H&M', 'Zara', 'Lacoste', 'Polo', 'Puma'].map((merk, i) => (
-              <View key={i} className="bg-white w-[18%] aspect-square rounded-xl items-center justify-center border border-gray-100 shadow-sm">
+              <TouchableOpacity key={i} onPress={mockFeature} className="bg-white w-[18%] aspect-square rounded-xl items-center justify-center border border-gray-100 shadow-sm active:opacity-70">
                 <Text className="font-bold text-black text-xs">{merk}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>

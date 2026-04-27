@@ -6,17 +6,20 @@ import { useFocusEffect } from '@react-navigation/native';
 import LUtama from '../layouts/l_utama';
 import { ambil_tersimpan, hapus_tersimpan } from '../services/api';
 import { useModal } from '../context/ModalContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function VTersimpan() {
   const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { showModal } = useModal();
+  const { user } = useAuth();
 
   const muat_data = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      const res = await ambil_tersimpan();
+      const res = await ambil_tersimpan(user.id_pengguna);
       setItems(res.tersimpan || []);
     } catch (e) { console.error(e); }
     setLoading(false);

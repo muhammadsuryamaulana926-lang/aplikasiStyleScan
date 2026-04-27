@@ -70,8 +70,9 @@ export default function VMasuk() {
         await login(data.pengguna);
         showModal({ title: "Berhasil", message: "Selamat datang kembali!", type: 'success', onConfirm: () => router.replace('/beranda') });
       } else {
-        await daftar_akun(email, password);
-        showModal({ title: "Berhasil", message: "Akun berhasil dibuat! Silakan masuk.", type: 'success', onConfirm: () => showForm('login') });
+        const res = await daftar_akun(email, password);
+        await login(res.pengguna);
+        showModal({ title: "Berhasil", message: "Akun berhasil dibuat dan otomatis masuk!", type: 'success', onConfirm: () => router.replace('/beranda') });
       }
     } catch (error: any) {
       console.log("AUTH_ERROR:", error);

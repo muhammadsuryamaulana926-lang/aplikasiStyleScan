@@ -5,6 +5,7 @@ import { CaretLeft, Heart, Star } from 'phosphor-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ambil_produk_by_id, simpan_outfit } from '../services/api';
 import { useModal } from '../context/ModalContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function VHasil() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function VHasil() {
   const [warna_aktif, setWarnaAktif] = useState(1);
   const [liked, setLiked] = useState(false);
   const { showModal } = useModal();
+  const { user } = useAuth();
 
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
@@ -37,10 +39,11 @@ export default function VHasil() {
   const warna_list = ['#6B7280', '#0A4D68', '#991B1B'];
 
   const tambah_keranjang = async () => {
+    if (!user) return showModal({ title: "Perhatian", message: "Silakan masuk terlebih dahulu", type: 'info', onConfirm: () => router.push('/masuk') });
     try {
       const selectedUkuran = ukuran_list[ukuran_aktif];
       const selectedWarna = warna_list[warna_aktif];
-      const res = await simpan_outfit(p.id, selectedUkuran, selectedWarna);
+      const res = await simpan_outfit(user.id_pengguna, p.id, selectedUkuran, selectedWarna);
       if (res?.sudah_ada) {
         showModal({ title: "Info", message: "Produk sudah ada di keranjang", type: 'info' });
       } else {

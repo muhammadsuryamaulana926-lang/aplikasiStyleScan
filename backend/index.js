@@ -50,6 +50,7 @@ async function initDB() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tersimpan (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        id_pengguna INT NOT NULL,
         id_produk INT,
         ukuran VARCHAR(50),
         warna VARCHAR(50),
@@ -138,29 +139,31 @@ app.post('/analisis_outfit', async (req, res) => {
 
 // --- Tersimpan / Keranjang ---
 app.post('/simpan_outfit', async (req, res) => {
-  const { id_produk, ukuran, warna } = req.body;
+  const { id_pengguna, id_produk, ukuran, warna } = req.body;
+  if (!id_pengguna) return res.status(401).json({ pesan: "Harap login terlebih dahulu" });
+
   try {
-    // Cek apakah sudah tersimpan dengan ukuran dan warna yang sama
-    const [existing] = await pool.query('SELECT * FROM tersimpan WHERE id_produk = ? AND (ukuran = ? OR ukuran IS NULL) AND (warna = ? OR warna IS NULL)', [id_produk, ukuran, warna]);
+    const [existing] = await pool.query('SELECT * FROM tersimpan WHERE id_pengguna = ? AND id_produk = ? AND (ukuran = ? OR ukuran IS NULL) AND (warna = ? OR warna IS NULL)', [id_pengguna, id_produk, ukuran, warna]);
     if (existing.length > 0) {
       return res.json({ pesan: "Produk sudah ada di keranjang dengan varian ini", sudah_ada: true });
     }
-    await pool.query('INSERT INTO tersimpan (id_produk, ukuran, warna) VALUES (?, ?, ?)', [id_produk, ukuran, warna]);
-    const [rows] = await pool.query('SELECT COUNT(*) as count FROM tersimpan');
+    await pool.query('INSERT INTO tersimpan (id_pengguna, id_produk, ukuran, warna) VALUES (?, ?, ?, ?)', [id_pengguna, id_produk, ukuran, warna]);
+    const [rows] = await pool.query('SELECT COUNT(*) as count FROM tersimpan WHERE id_pengguna = ?', [id_pengguna]);
     res.json({ pesan: "Berhasil ditambahkan ke keranjang!", total_tersimpan: rows[0].count });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.get('/tersimpan', async (req, res) => {
+app.get('/tersimpan/:id_pengguna', async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT t.id, t.id_produk, t.ukuran, t.warna, t.waktu_simpan, p.nama, p.harga, p.diskon, p.merk, p.gambar, p.rating
       FROM tersimpan t
       JOIN produk p ON t.id_produk = p.id
+      WHERE t.id_pengguna = ?
       ORDER BY t.waktu_simpan DESC
-    `);
+    `, [req.params.id_pengguna]);
     res.json({ tersimpan: rows });
   } catch (error) {
     res.status(500).json({ error: error.message });
