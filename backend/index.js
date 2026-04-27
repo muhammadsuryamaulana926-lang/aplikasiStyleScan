@@ -102,7 +102,7 @@ initDB();
 // --- Produk ---
 app.get('/produk', async (req, res) => {
   try {
-    const [produk_db] = await pool.query('SELECT * FROM produk');
+    const [produk_db] = await pool.query('SELECT id_produk AS id, nama_produk AS nama, harga, url_gambar AS gambar, kategori AS merk, "4.5" AS rating, "-10%" AS diskon FROM produk');
     res.json({ produk: produk_db });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -111,7 +111,7 @@ app.get('/produk', async (req, res) => {
 
 app.get('/produk/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM produk WHERE id = ?', [req.params.id]);
+    const [rows] = await pool.query('SELECT id_produk AS id, nama_produk AS nama, harga, url_gambar AS gambar, kategori AS merk, "4.5" AS rating, "-10%" AS diskon FROM produk WHERE id_produk = ?', [req.params.id]);
     if (rows.length > 0) {
       res.json({ produk: rows[0] });
     } else {
@@ -133,7 +133,7 @@ app.post('/unggah_outfit', upload.single('gambar'), (req, res) => {
 
 app.post('/analisis_outfit', async (req, res) => {
   try {
-    const [produk_db] = await pool.query('SELECT * FROM produk LIMIT 3');
+    const [produk_db] = await pool.query('SELECT id_produk AS id, nama_produk AS nama, harga, url_gambar AS gambar, kategori AS merk, "4.5" AS rating, "-10%" AS diskon FROM produk LIMIT 3');
     res.json({
       pesan: "Analisis selesai",
       kategori_terdeteksi: ["Hoodie", "Celana Jeans", "Sneakers"],
@@ -167,9 +167,9 @@ app.post('/simpan_outfit', async (req, res) => {
 app.get('/tersimpan/:id_pengguna', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT t.id, t.id_produk, t.ukuran, t.warna, t.waktu_simpan, p.nama, p.harga, p.diskon, p.merk, p.gambar, p.rating
+      SELECT t.id, t.id_produk, t.ukuran, t.warna, t.waktu_simpan, p.nama_produk AS nama, p.harga, "-10%" AS diskon, p.kategori AS merk, p.url_gambar AS gambar, "4.5" AS rating
       FROM tersimpan t
-      JOIN produk p ON t.id_produk = p.id
+      JOIN produk p ON t.id_produk = p.id_produk
       WHERE t.id_pengguna = ?
       ORDER BY t.waktu_simpan DESC
     `, [req.params.id_pengguna]);
@@ -210,9 +210,9 @@ app.post('/favorit', async (req, res) => {
 app.get('/favorit/:id_pengguna', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT f.id, f.id_produk, f.waktu_simpan, p.nama, p.harga, p.diskon, p.merk, p.gambar, p.rating
+      SELECT f.id, f.id_produk, f.waktu_simpan, p.nama_produk AS nama, p.harga, "-10%" AS diskon, p.kategori AS merk, p.url_gambar AS gambar, "4.5" AS rating
       FROM favorit f
-      JOIN produk p ON f.id_produk = p.id
+      JOIN produk p ON f.id_produk = p.id_produk
       WHERE f.id_pengguna = ?
       ORDER BY f.waktu_simpan DESC
     `, [req.params.id_pengguna]);
