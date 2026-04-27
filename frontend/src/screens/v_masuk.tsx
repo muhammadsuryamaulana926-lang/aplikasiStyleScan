@@ -90,7 +90,7 @@ export default function VMasuk() {
         resizeMode="cover"
       >
         <View className="absolute top-24 w-full items-center">
-          <Text className="text-white text-6xl font-serif tracking-widest mb-3">STYL</Text>
+          <Text className="text-white text-5xl font-serif tracking-widest mb-3">StyleScan</Text>
           <Text className="text-white text-xs tracking-widest uppercase font-medium">Shop. Ship. Pay Later.</Text>
         </View>
 

@@ -12,7 +12,7 @@ export default function CBottomNav({ active = 'home' }: { active?: string }) {
     { key: 'home', icon: House, route: '/beranda' },
     { key: 'kategori', icon: SquaresFour, route: '/beranda' },
     { key: 'kamera', icon: Scan, route: '/kamera' },
-    { key: 'tersimpan', icon: Heart, route: '/tersimpan' },
+    { key: 'favorit', icon: Heart, route: '/favorit' },
     { key: 'profil', icon: User, route: '/profil' },
   ];
 

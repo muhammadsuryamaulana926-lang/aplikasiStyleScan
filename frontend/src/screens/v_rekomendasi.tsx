@@ -3,11 +3,14 @@ import { View, Text, Image, TouchableOpacity, FlatList, Dimensions } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CaretLeft, Heart, HandTap } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
-import { ambil_produk, simpan_outfit } from '../services/api';
+import { ambil_produk, simpan_outfit, toggle_favorit } from '../services/api';
 import { useModal } from '../context/ModalContext';
 
-export default function VKamera() {
+import { useAuth } from '../context/AuthContext';
+
+export default function VRekomendasi() {
   const router = useRouter();
+  const { user } = useAuth();
   const [produk_list, setProdukList] = useState<any[]>([]);
   const [index_aktif, setIndexAktif] = useState(0);
   const [liked, setLiked] = useState(false);
@@ -43,8 +46,9 @@ export default function VKamera() {
   };
 
   const tambah_keranjang = async () => {
+    if (!user) return showModal({ title: "Perhatian", message: "Silakan masuk terlebih dahulu", type: 'info', onConfirm: () => router.push('/masuk') });
     try {
-      const res = await simpan_outfit(produk_sekarang.id);
+      const res = await simpan_outfit(user.id_pengguna, produk_sekarang.id);
       if (res?.sudah_ada) {
         showModal({ title: "Info", message: "Produk sudah ada di keranjang Anda", type: 'info' });
       } else {
@@ -52,6 +56,17 @@ export default function VKamera() {
       }
     } catch (error) {
       showModal({ title: "Error", message: "Gagal menambahkan ke keranjang", type: 'error' });
+    }
+  };
+
+  const handle_favorit = async () => {
+    if (!user) return showModal({ title: "Perhatian", message: "Silakan masuk terlebih dahulu", type: 'info', onConfirm: () => router.push('/masuk') });
+    setLiked(!liked); // optimistic update
+    try {
+      const res = await toggle_favorit(user.id_pengguna, produk_sekarang.id);
+      if (!res) setLiked(liked);
+    } catch (e) {
+      setLiked(liked);
     }
   };
 
@@ -93,7 +108,7 @@ export default function VKamera() {
         <TouchableOpacity onPress={() => router.back()} className="p-2 bg-white/20 rounded-full">
           <CaretLeft size={20} color="#FFFFFF" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setLiked(!liked)} className="p-2 bg-white/20 rounded-full">
+        <TouchableOpacity onPress={handle_favorit} className="p-2 bg-white/20 rounded-full">
           <Heart size={20} color={liked ? "#FF4D6D" : "#FFFFFF"} weight={liked ? "fill" : "regular"} />
         </TouchableOpacity>
       </View>

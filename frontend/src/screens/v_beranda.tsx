@@ -27,13 +27,13 @@ export default function VBeranda() {
             <View className="w-8 h-8 bg-[#0A4D68] rounded-md mr-2 transform rotate-45 items-center justify-center">
               <View className="w-4 h-4 bg-white transform -rotate-45" />
             </View>
-            <Text className="text-xl font-bold text-black">Wearify</Text>
+            <Text className="text-xl font-bold text-black">StyleScan</Text>
           </View>
           <View className="flex-row space-x-3">
             <TouchableOpacity onPress={mockFeature} className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
               <MagnifyingGlass size={20} color="#1A1A1A" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/tersimpan')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
+            <TouchableOpacity onPress={() => router.push('/keranjang')} className="p-2 bg-white rounded-full shadow-sm border border-gray-100">
               <ShoppingBag size={20} color="#1A1A1A" />
             </TouchableOpacity>
           </View>

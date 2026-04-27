@@ -39,7 +39,7 @@ export default function VKamera() {
         // Simulasi pengiriman ke AI / Backend
         setTimeout(() => {
           setScanning(false);
-          router.push('/rekomendasi');
+          router.push('/rekomendasi' as any);
         }, 2000);
 
       } catch (e) {

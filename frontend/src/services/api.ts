@@ -1,4 +1,4 @@
-const BASE_URL = 'http://192.168.100.103:3000'; // Sesuaikan dengan IP lokal
+const BASE_URL = 'http://10.251.108.60:3000'; // Sesuaikan dengan IP lokal
 
 // === PRODUK ===
 export const ambil_produk = async () => {
@@ -69,6 +69,31 @@ export const hapus_tersimpan = async (id: number) => {
   }
 };
 
+// === FAVORIT ===
+export const toggle_favorit = async (id_pengguna: number, id_produk: number) => {
+  try {
+    const res = await fetch(`${BASE_URL}/favorit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id_pengguna, id_produk })
+    });
+    return await res.json();
+  } catch (error) {
+    console.error("Error toggle favorit:", error);
+    return null;
+  }
+};
+
+export const ambil_favorit = async (id_pengguna: number) => {
+  try {
+    const res = await fetch(`${BASE_URL}/favorit/${id_pengguna}`);
+    return await res.json();
+  } catch (error) {
+    console.error("Error ambil favorit:", error);
+    return { favorit: [] };
+  }
+};
+
 // === AUTENTIKASI ===
 export const masuk_akun = async (email: string, password: string) => {
   try {
@@ -77,7 +102,7 @@ export const masuk_akun = async (email: string, password: string) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    
+
     let data;
     try {
       data = await res.json();
@@ -104,7 +129,7 @@ export const daftar_akun = async (email: string, password: string) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    
+
     let data;
     try {
       data = await res.json();

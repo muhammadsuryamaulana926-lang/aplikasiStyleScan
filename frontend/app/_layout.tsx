@@ -16,7 +16,8 @@ export default function RootLayout() {
           <Stack.Screen name="kamera" />
           <Stack.Screen name="rekomendasi" />
           <Stack.Screen name="hasil" />
-          <Stack.Screen name="tersimpan" />
+          <Stack.Screen name="keranjang" />
+          <Stack.Screen name="favorit" />
           <Stack.Screen name="profil" />
         </Stack>
       </ModalProvider>

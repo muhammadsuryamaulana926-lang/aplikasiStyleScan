@@ -59,6 +59,15 @@ async function initDB() {
     `);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS favorit (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_pengguna INT NOT NULL,
+        id_produk INT,
+        waktu_simpan TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS pengguna (
         id_pengguna INT AUTO_INCREMENT PRIMARY KEY,
         nama_pengguna VARCHAR(255) DEFAULT 'User',
@@ -174,6 +183,40 @@ app.delete('/tersimpan/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM tersimpan WHERE id = ?', [req.params.id]);
     res.json({ pesan: "Berhasil dihapus dari keranjang" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Favorit ---
+app.post('/favorit', async (req, res) => {
+  const { id_pengguna, id_produk } = req.body;
+  if (!id_pengguna) return res.status(401).json({ pesan: "Harap login terlebih dahulu" });
+
+  try {
+    const [existing] = await pool.query('SELECT * FROM favorit WHERE id_pengguna = ? AND id_produk = ?', [id_pengguna, id_produk]);
+    if (existing.length > 0) {
+      await pool.query('DELETE FROM favorit WHERE id_pengguna = ? AND id_produk = ?', [id_pengguna, id_produk]);
+      return res.json({ pesan: "Dihapus dari favorit", is_favorit: false });
+    } else {
+      await pool.query('INSERT INTO favorit (id_pengguna, id_produk) VALUES (?, ?)', [id_pengguna, id_produk]);
+      return res.json({ pesan: "Ditambahkan ke favorit", is_favorit: true });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/favorit/:id_pengguna', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT f.id, f.id_produk, f.waktu_simpan, p.nama, p.harga, p.diskon, p.merk, p.gambar, p.rating
+      FROM favorit f
+      JOIN produk p ON f.id_produk = p.id
+      WHERE f.id_pengguna = ?
+      ORDER BY f.waktu_simpan DESC
+    `, [req.params.id_pengguna]);
+    res.json({ favorit: rows });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

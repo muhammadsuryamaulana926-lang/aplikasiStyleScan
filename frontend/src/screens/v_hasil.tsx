@@ -3,7 +3,7 @@ import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CaretLeft, Heart, Star } from 'phosphor-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ambil_produk_by_id, simpan_outfit } from '../services/api';
+import { ambil_produk_by_id, simpan_outfit, toggle_favorit } from '../services/api';
 import { useModal } from '../context/ModalContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,6 +34,17 @@ export default function VHasil() {
   }, [id]);
 
   const p = data || null;
+
+  const handle_favorit = async () => {
+    if (!user) return showModal({ title: "Perhatian", message: "Silakan masuk terlebih dahulu", type: 'info', onConfirm: () => router.push('/masuk') });
+    setLiked(!liked); // optimistic update
+    try {
+      const res = await toggle_favorit(user.id_pengguna, p.id);
+      if (!res) setLiked(liked);
+    } catch (e) {
+      setLiked(liked);
+    }
+  };
 
   const ukuran_list = ['S', 'M', 'L', 'XL'];
   const warna_list = ['#6B7280', '#0A4D68', '#991B1B'];
@@ -66,7 +77,7 @@ export default function VHasil() {
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100">
           <CaretLeft size={20} color="#1A1A1A" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setLiked(!liked)} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100">
+        <TouchableOpacity onPress={handle_favorit} className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm border border-gray-100">
           <Heart size={20} color={liked ? "#FF4D6D" : "#1A1A1A"} weight={liked ? "fill" : "regular"} />
         </TouchableOpacity>
       </View>

@@ -8,7 +8,7 @@ import { ambil_tersimpan, hapus_tersimpan } from '../services/api';
 import { useModal } from '../context/ModalContext';
 import { useAuth } from '../context/AuthContext';
 
-export default function VTersimpan() {
+export default function VKeranjang() {
   const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
